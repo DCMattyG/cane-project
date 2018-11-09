@@ -5,12 +5,12 @@ Cisco API Normalization Engine - Unify & Normalize API's across multiple Cisco p
 
 ## Business/Technical Challenge
 
-Cisco is rapidly embracing the world of API's and programmability. All of our platforms now support some form of API that customers and partners can leverage as a point of automation or integration. However, there is a HUGE disparity in the various API platforms currently available. Some are JSON, some are XML. Some are token-based authentication, some are SHA256 encrypted. What we REALLY need is a unified API that would allow anyone with a mix of Cisco products to have ONE central point of API integration. That is what we hope to deliver with CANE.
+Cisco is rapidly embracing the world of API's and programmability. All of our platforms now support some form of API that customers and partners can leverage as a point of automation or integration. However, there is a HUGE disparity in the various API platforms currently available. Some are JSON, some are XML. Some are token-based authentication, some are SHA256 encrypted. What we REALLY need is a unified API that would allow anyone with a mix of Cisco products in their environment to have ONE central point of API integration. That is what we hope to deliver with CANE.
 
 ## Proposed Solution
 
 
-Project CANE will an API Gateway and Unification platform that can consume multiple underlying Cisco API platforms, and expose them as a single, unified API. Using a snap-in framework, different BE's will be able to create a mapping between the underlying API (e.g. NX-API), and convert that to a Cisco Unified API standard.
+Project CANE will be an API Gateway and Unification platform that can consume multiple underlying Cisco API platforms, and expose them as a single, unified API. Using a snap-in framework, different BE's will be able to create a mapping between the underlying API (e.g. NX-API), and convert that to a Cisco Unified API standard.
 
 Our partners and customers are looking more and more to integration via API's than ever before. Even though we'd love our customers to have an end-to-end Cisco stack, and to use our controller software, the reality is that most of the time that just doesn't happen. The only way to truly control such a disparate environment is though API integration. CANE will ease that effort by delivering a SINGLE API overarching all of our product families.
 
