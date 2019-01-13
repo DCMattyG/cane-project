@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cane/routing"
+	"cane-project/routing"
 	"fmt"
 	"net/http"
 	"time"
@@ -24,21 +24,6 @@ func logger() http.Handler {
 
 // Main Function
 func main() {
-	// fmt.Println("Selecting database...")
-	// database.SelectDatabase("testing", "numbers")
-
-	// fmt.Println("Adding test post to database...")
-
-	// toInsert := database.InsertValue{
-	// 	Name:  "pi",
-	// 	Value: 3.1459,
-	// }
-
-	// id := database.InsertToDB(toInsert)
-
-	// fmt.Print("Inserted ID: ")
-	// fmt.Println(id)
-
 	routing.Routers()
 
 	fmt.Println("Starting router...")

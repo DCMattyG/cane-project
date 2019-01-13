@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"encoding/json"
@@ -29,4 +29,14 @@ func UnmarshalJSON(data []byte, target interface{}) error {
 	}
 
 	return nil
+}
+
+// StringInSlice Function
+func StringInSlice(a []string, b string) bool {
+	for _, i := range a {
+		if b == i {
+			return true
+		}
+	}
+	return false
 }

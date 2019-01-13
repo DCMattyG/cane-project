@@ -13,17 +13,6 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo/readpref"
 )
 
-// RouteValue Struct
-type RouteValue struct {
-	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Enable   bool               `json:"enable" bson:"enable"`
-	Verb     string             `json:"verb" bson:"verb"`
-	Version  int                `json:"version" bson:"version"`
-	Category string             `json:"category" bson:"category"`
-	Route    string             `json:"route" bson:"route"`
-	Message  map[string]string  `json:"message" bson:"message"`
-}
-
 var client *mongo.Client
 var db *mongo.Collection
 

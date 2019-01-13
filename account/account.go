@@ -1,7 +1,7 @@
 package account
 
 import (
-	"cane/database"
+	"cane-project/database"
 	"fmt"
 	"net"
 
