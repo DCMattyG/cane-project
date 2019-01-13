@@ -112,9 +112,9 @@ func AddRoutes(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Adding routes to database...")
 
-	database.SelectDatabase("routing", "routes")
+	// database.SelectDatabase("routing", "routes")
 
-	postID := database.InsertToDB(target)
+	postID := database.SaveToDB("routing", "routes", target)
 
 	fmt.Print("Inserted ID: ")
 	fmt.Println(postID)

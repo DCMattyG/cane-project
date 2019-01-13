@@ -23,8 +23,10 @@ func SelectDatabase(dbase string, coll string) {
 	return
 }
 
-// InsertToDB Function
-func InsertToDB(insertVal interface{}) interface{} {
+// SaveToDB Function
+func SaveToDB(database string, collection string, insertVal interface{}) interface{} {
+	SelectDatabase(database, collection)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
