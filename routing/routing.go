@@ -48,7 +48,7 @@ func Routers() {
 	fmt.Println("Updating routes...")
 
 	// Built-In Default Routes
-	Router.Post("/add", AddRoutes)
+	Router.Post("/addRoute", AddRoutes)
 
 	// Dynamic Routes
 	for i := range iterVals {
@@ -102,6 +102,11 @@ func AddRoutes(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
+		return
+	}
+
+	if !(ValidateRoute(target)) {
+		util.RespondWithError(w, http.StatusBadRequest, "invalid route")
 		return
 	}
 
