@@ -1,6 +1,9 @@
 package account
 
-import "github.com/mongodb/mongo-go-driver/bson/primitive"
+import (
+	"github.com/dgrijalva/jwt-go"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
+)
 
 var privilegeLevel = map[string]int{
 	"admin":    1,
@@ -14,4 +17,5 @@ type UserAccount struct {
 	UserName  string             `json:"username" bson:"username"`
 	Password  string             `json:"password" bson:"password"`
 	Privilege int                `json:"privilege" bson:"privilege"`
+	Token     jwt.Token          `json:"token" bson:"token"`
 }
