@@ -1,10 +1,25 @@
 package util
 
 import (
+	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 )
+
+// XMLNode Struct
+type XMLNode struct {
+	XMLName xml.Name
+	Attrs   []xml.Attr `xml:"-"`
+	Content []byte     `xml:",innerxml"`
+	Nodes   []XMLNode  `xml:",any"`
+}
+
+// JSONNode Struct
+type JSONNode struct {
+	Node map[string]interface{}
+}
 
 // RespondwithJSON write json response format
 func RespondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
@@ -39,4 +54,33 @@ func StringInSlice(a []string, b string) bool {
 		}
 	}
 	return false
+}
+
+// IsXML Function
+func IsXML(s string) bool {
+	buf := bytes.NewBuffer([]byte(s))
+	dec := xml.NewDecoder(buf)
+
+	var n XMLNode
+
+	err := dec.Decode(&n)
+
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+// IsJSON Function
+func IsJSON(s string) bool {
+	var js map[string]interface{}
+
+	err := json.Unmarshal([]byte(s), &js)
+
+	if err != nil {
+		return false
+	}
+
+	return true
 }
