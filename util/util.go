@@ -1,7 +1,6 @@
 package util
 
 import (
-	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -54,33 +53,4 @@ func StringInSlice(a []string, b string) bool {
 		}
 	}
 	return false
-}
-
-// IsXML Function
-func IsXML(s string) bool {
-	buf := bytes.NewBuffer([]byte(s))
-	dec := xml.NewDecoder(buf)
-
-	var n XMLNode
-
-	err := dec.Decode(&n)
-
-	if err != nil {
-		return false
-	}
-
-	return true
-}
-
-// IsJSON Function
-func IsJSON(s string) bool {
-	var js map[string]interface{}
-
-	err := json.Unmarshal([]byte(s), &js)
-
-	if err != nil {
-		return false
-	}
-
-	return true
 }
