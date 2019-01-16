@@ -1,9 +1,12 @@
 package routing
 
 import (
+	"bytes"
 	"cane-project/database"
+	"cane-project/model"
 	"cane-project/util"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -49,6 +52,7 @@ func Routers() {
 
 	// Built-In Default Routes
 	Router.Post("/addRoute", AddRoutes)
+	Router.Post("/parseVars", ParseVars)
 
 	// Dynamic Routes
 	for i := range iterVals {
@@ -77,6 +81,48 @@ func Routers() {
 				})
 			}
 		}
+	}
+}
+
+// ParseVars function
+func ParseVars(w http.ResponseWriter, r *http.Request) {
+	bodyReader, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Println(err)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+
+	if model.IsJSON(string(bodyReader)) {
+		var j model.JSONNode
+
+		jsonErr := json.Unmarshal(bodyReader, &j)
+
+		if jsonErr != nil {
+			panic(jsonErr)
+		}
+
+		j.JSONVars()
+
+		util.RespondwithJSON(w, http.StatusCreated, j)
+	}
+
+	if model.IsXML(string(bodyReader)) {
+		var x model.XMLNode
+
+		buf := bytes.NewBuffer(bodyReader)
+		dec := xml.NewDecoder(buf)
+		xmlErr := dec.Decode(&x)
+
+		if xmlErr != nil {
+			panic(xmlErr)
+		}
+
+		x.ScrubXML()
+		x.XMLVars()
+
+		util.RespondwithXML(w, http.StatusCreated, x)
 	}
 }
 

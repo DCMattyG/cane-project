@@ -54,7 +54,7 @@ func IsCDATA(s string) bool {
 }
 
 // ScrubXML Function
-func ScrubXML(x *XMLNode) {
+func (x *XMLNode) ScrubXML() {
 	if len(x.Nodes) > 0 {
 		x.Content = []byte{}
 	} else {
@@ -65,7 +65,7 @@ func ScrubXML(x *XMLNode) {
 	}
 
 	for i := 0; i < len(x.Nodes); i++ {
-		ScrubXML(&x.Nodes[i])
+		x.Nodes[i].ScrubXML()
 	}
 }
 
@@ -80,7 +80,13 @@ func (x XMLNode) Marshal(args ...int) string {
 		depth = 0
 	}
 
-	xmlString += strings.Repeat(" ", depth) + "<" + string(x.XMLName.Local) + ">"
+	xmlString += strings.Repeat(" ", depth) + "<" + string(x.XMLName.Local)
+
+	for _, attr := range x.Attrs {
+		xmlString += " " + attr.Name.Local + "=\"" + attr.Value + "\""
+	}
+
+	xmlString += ">"
 
 	if len(x.Content) > 0 && !IsCDATA(string(x.Content)) {
 		xmlString += string(x.Content)
@@ -101,7 +107,7 @@ func (x XMLNode) Marshal(args ...int) string {
 			panic(cdataErr)
 		}
 
-		ScrubXML(&cdata)
+		cdata.ScrubXML()
 
 		xmlString += cdata.Marshal(depth + 4)
 		xmlString += strings.Repeat(" ", (depth+2)) + "]]>\n"
@@ -197,4 +203,12 @@ func (j JSONNode) JSONVars() {
 			j[key] = "{{var_" + key + "}}"
 		}
 	}
+}
+
+// UnmarshalXML Function
+func (x *XMLNode) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	x.Attrs = start.Attr
+	type node XMLNode
+
+	return d.DecodeElement((*node)(x), &start)
 }
