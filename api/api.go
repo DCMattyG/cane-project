@@ -7,6 +7,16 @@ import (
 	"net/url"
 )
 
+// APITypes Variable
+var APITypes []string
+
+func init() {
+	APITypes = []string{
+		"xml",
+		"json",
+	}
+}
+
 // CallAPI Function
 func CallAPI() *http.Response {
 	// transport := &http.Transport{}

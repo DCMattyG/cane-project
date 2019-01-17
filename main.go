@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
@@ -48,8 +49,28 @@ func logger() http.Handler {
 
 // Main Function
 func main() {
+	var canePort string
+	httpPort := os.Getenv("CANE_PORT")
+
+	if len(httpPort) > 0 {
+		// port, err := strconv.Atoi(httpPort)
+
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
+
+		canePort = ":" + httpPort
+	} else {
+		canePort = ":8005"
+	}
+
 	routing.Routers()
 
 	fmt.Println("Starting router...")
-	http.ListenAndServe(":8005", logger())
+	// http.ListenAndServe(":8005", logger())
+
+	fmt.Println("Listening on port", canePort)
+
+	http.ListenAndServe(canePort, logger())
 }
