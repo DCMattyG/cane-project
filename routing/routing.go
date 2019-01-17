@@ -3,6 +3,7 @@ package routing
 import (
 	"bytes"
 	"cane-project/account"
+	"cane-project/api"
 	"cane-project/auth"
 	"cane-project/database"
 	"cane-project/model"
@@ -45,6 +46,7 @@ func Routers() {
 	Router.Post("/addUser", account.AddUser)
 	Router.Post("/validateToken", account.ValidateUserToken)
 	Router.Post("/updateToken", account.RefreshToken)
+	Router.Get("/apiTest", TestCallAPI)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -182,4 +184,16 @@ func ValidateRoute(route model.RouteValue) bool {
 	}
 
 	return true
+}
+
+// TestCallAPI Function
+func TestCallAPI(w http.ResponseWriter, r *http.Request) {
+	var respBody map[string]interface{}
+
+	res := api.CallAPI()
+
+	json.NewDecoder(res.Body).Decode(&respBody)
+	fmt.Println(respBody)
+
+	util.RespondwithJSON(w, http.StatusCreated, respBody)
 }
