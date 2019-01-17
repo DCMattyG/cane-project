@@ -2,6 +2,7 @@ package routing
 
 import (
 	"bytes"
+	"cane-project/account"
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
@@ -12,10 +13,15 @@ import (
 	"net/http"
 	"strconv"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
+
+var mySigningKey = []byte("secret")
+var tokenAuth *jwtauth.JWTAuth
 
 // RouteValue Struct
 type RouteValue struct {
@@ -33,6 +39,7 @@ var Router *chi.Mux
 
 func init() {
 	Router = chi.NewRouter()
+	tokenAuth = jwtauth.New("HS256", mySigningKey, nil)
 
 	// catch(err)
 }
@@ -42,10 +49,8 @@ func Routers() {
 	var iterVals []RouteValue
 	Router = chi.NewMux()
 
-	database.SelectDatabase("routing", "routes")
-
 	filter := primitive.M{}
-	foundVals := database.FindAllInDB(filter)
+	foundVals, _ := database.FindAll("routing", "routes", filter)
 	mapstructure.Decode(foundVals, &iterVals)
 
 	fmt.Println("Updating routes...")
@@ -53,6 +58,18 @@ func Routers() {
 	// Built-In Default Routes
 	Router.Post("/addRoute", AddRoutes)
 	Router.Post("/parseVars", ParseVars)
+	Router.Post("/login", account.Login)
+	Router.Post("/addUser", account.AddUser)
+	Router.Post("/validateToken", account.ValidateUserToken)
+	Router.Post("/updateToken", account.RefreshToken)
+
+	// Protected Routes
+	Router.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(jwtauth.Authenticator)
+		r.Post("/changePassword", account.ChangePassword)
+		r.Get("/test", TestPost)
+	})
 
 	// Dynamic Routes
 	for i := range iterVals {
@@ -68,16 +85,16 @@ func Routers() {
 				})
 			} else if routeVal.Verb == "post" {
 				Router.Post(newRoute, func(w http.ResponseWriter, r *http.Request) {
-					testJSON := make(map[string]interface{})
-					err := json.NewDecoder(r.Body).Decode(&testJSON)
+					postJSON := make(map[string]interface{})
+					err := json.NewDecoder(r.Body).Decode(&postJSON)
 
-					fmt.Println(testJSON)
+					fmt.Println(postJSON)
 
 					if err != nil {
 						panic(err)
 					}
 
-					util.RespondwithJSON(w, http.StatusCreated, testJSON)
+					util.RespondwithJSON(w, http.StatusCreated, postJSON)
 				})
 			}
 		}
@@ -160,7 +177,7 @@ func AddRoutes(w http.ResponseWriter, r *http.Request) {
 
 	// database.SelectDatabase("routing", "routes")
 
-	postID := database.SaveToDB("routing", "routes", target)
+	postID, _ := database.Save("routing", "routes", target)
 
 	fmt.Print("Inserted ID: ")
 	fmt.Println(postID)
@@ -184,4 +201,30 @@ func ValidateRoute(route RouteValue) bool {
 	}
 
 	return true
+}
+
+func isAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Header["Token"] != nil {
+
+			token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("There was an error")
+				}
+				return mySigningKey, nil
+			})
+
+			if err != nil {
+				fmt.Fprintf(w, err.Error())
+			}
+
+			if token.Valid {
+				endpoint(w, r)
+			}
+		} else {
+
+			fmt.Fprintf(w, "Not Authorized")
+		}
+	})
 }

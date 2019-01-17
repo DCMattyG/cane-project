@@ -36,7 +36,7 @@ func logger() http.Handler {
 		}
 
 		// database.SelectDatabase("logging", "logs")
-		logID := database.SaveToDB("logging", "logs", newLog)
+		logID, _ := database.Save("logging", "logs", newLog)
 
 		fmt.Print("Inserted Log: ")
 		fmt.Println(logID)

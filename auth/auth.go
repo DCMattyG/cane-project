@@ -2,6 +2,9 @@ package auth
 
 import "crypto/rsa"
 
+// MySigningKey Variable
+var MySigningKey = []byte("secret")
+
 // AuthTypes Variable
 var AuthTypes = map[string]string{
 	"basic":   "Basic",

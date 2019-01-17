@@ -23,8 +23,10 @@ func SelectDatabase(dbase string, coll string) {
 	return
 }
 
-// SaveToDB Function
-func SaveToDB(database string, collection string, insertVal interface{}) interface{} {
+// Save Function
+func Save(database string, collection string, insertVal interface{}) (interface{}, error) {
+	var id interface{}
+
 	SelectDatabase(database, collection)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -33,16 +35,16 @@ func SaveToDB(database string, collection string, insertVal interface{}) interfa
 	res, err := db.InsertOne(ctx, &insertVal)
 
 	if err != nil {
-		log.Fatal(err)
+		return id, err
 	}
 
-	id := res.InsertedID
+	id = res.InsertedID
 
-	return id
+	return id, nil
 }
 
 // FindDB Function
-func FindDB(filter bson.M) []string {
+func FindDB(filter bson.M) ([]string, error) {
 	var result []string
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -51,38 +53,39 @@ func FindDB(filter bson.M) []string {
 	result, err := client.ListDatabaseNames(ctx, filter)
 
 	if err != nil {
-		log.Fatal(err)
+		return result, err
 	}
 
-	return result
+	return result, nil
 }
 
-// FindOneInDB Function
-func FindOneInDB(filter bson.M) primitive.M {
+// FindOne Function
+func FindOne(database string, collection string, filter bson.M) (primitive.M, error) {
 	var result primitive.M
+
+	SelectDatabase(database, collection)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := db.FindOne(ctx, filter).Decode(&result)
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return result
+	return result, err
 }
 
-// FindAllInDB Function
-func FindAllInDB(filter bson.M) []primitive.M {
+// FindAll Function
+func FindAll(database string, collection string, filter bson.M) ([]primitive.M, error) {
 	var results []primitive.M
+
+	SelectDatabase(database, collection)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	cur, err := db.Find(ctx, filter)
 
 	if err != nil {
-		log.Fatal(err)
+		return results, err
 	}
 
 	defer cur.Close(ctx)
@@ -93,7 +96,7 @@ func FindAllInDB(filter bson.M) []primitive.M {
 		err := cur.Decode(&result)
 
 		if err != nil {
-			log.Fatal(err)
+			return results, err
 		}
 
 		results = append(results, result)
@@ -103,36 +106,63 @@ func FindAllInDB(filter bson.M) []primitive.M {
 		log.Fatal(err)
 	}
 
-	return results
+	return results, nil
+}
+
+// FindAndUpdate Function
+func FindAndUpdate(database string, collection string, filter bson.M, update bson.M) (primitive.M, error) {
+	var result primitive.M
+
+	SelectDatabase(database, collection)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := db.FindOneAndUpdate(ctx, filter, update).Decode(&result)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func init() {
 	var err error
 
-	fmt.Println("Connecting to database...")
+	fmt.Print("Creating database connection...")
 
 	client, err = mongo.NewClient("mongodb://localhost:27017")
 
 	if err != nil {
+		fmt.Println("[FAIL]")
 		log.Fatal(err)
+	} else {
+		fmt.Println("[SUCCESS]")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
+	fmt.Print("Connecting to database...")
+
 	err = client.Connect(ctx)
 
 	if err != nil {
+		fmt.Println("[FAIL]")
 		log.Fatal(err)
+	} else {
+		fmt.Println("[SUCCESS]")
 	}
+
+	fmt.Print("Pinging database...")
 
 	err = client.Ping(ctx, readpref.Primary())
 
 	if err != nil {
+		fmt.Println("[FAIL]")
 		log.Fatal(err)
+	} else {
+		fmt.Println("[SUCCESS]")
 	}
-
-	// dbs := FindDB(bson.M{"name": "routing"})
-
-	// fmt.Println(dbs)
 }
