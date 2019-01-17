@@ -1,9 +1,18 @@
 package auth
 
-import "crypto/rsa"
+import (
+	"cane-project/model"
+	"fmt"
+
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-chi/jwtauth"
+)
 
 // MySigningKey Variable
 var MySigningKey = []byte("secret")
+
+// TokenAuth Variable
+var TokenAuth *jwtauth.JWTAuth
 
 // AuthTypes Variable
 var AuthTypes = map[string]string{
@@ -13,26 +22,47 @@ var AuthTypes = map[string]string{
 	"rfc3447": "Rfc3447",
 }
 
-// Basic Auth Type
-type Basic struct {
-	userName string
-	password string
+func init() {
+	TokenAuth = jwtauth.New("HS256", MySigningKey, nil)
 }
 
-// Session Auth Type
-type Session struct {
-	userName       string
-	password       string
-	cookieLifetime int32
+// GenerateJWT Function
+func GenerateJWT(account model.UserAccount) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	claims["authorized"] = true
+	claims["client"] = account.FirstName + " " + account.LastName
+	// claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+
+	tokenString, err := token.SignedString(MySigningKey)
+
+	if err != nil {
+		fmt.Println("Something Went Wrong: ", err.Error())
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
-// APIKey Auth Type
-type APIKey struct {
-	key string
-}
+// ValidateJWT Function
+func ValidateJWT(t string) {
+	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("There was an error")
+		}
+		return MySigningKey, nil
+	})
 
-// Rfc3447 Auth Type
-type Rfc3447 struct {
-	publicKey  string
-	privateKey *rsa.PrivateKey
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	if token.Valid {
+		fmt.Println("Valid Token!")
+	} else {
+
+		fmt.Println("Not Authorized!")
+	}
 }

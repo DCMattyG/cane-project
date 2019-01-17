@@ -3,6 +3,7 @@ package routing
 import (
 	"bytes"
 	"cane-project/account"
+	"cane-project/auth"
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
@@ -13,40 +14,22 @@ import (
 	"net/http"
 	"strconv"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
-var mySigningKey = []byte("secret")
-var tokenAuth *jwtauth.JWTAuth
-
-// RouteValue Struct
-type RouteValue struct {
-	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Enable   bool               `json:"enable" bson:"enable"`
-	Verb     string             `json:"verb" bson:"verb"`
-	Version  int                `json:"version" bson:"version"`
-	Category string             `json:"category" bson:"category"`
-	Route    string             `json:"route" bson:"route"`
-	Message  map[string]string  `json:"message" bson:"message"`
-}
-
 // Router Variable
 var Router *chi.Mux
 
 func init() {
 	Router = chi.NewRouter()
-	tokenAuth = jwtauth.New("HS256", mySigningKey, nil)
-
-	// catch(err)
 }
 
 // Routers Function
 func Routers() {
-	var iterVals []RouteValue
+	var iterVals []model.RouteValue
 	Router = chi.NewMux()
 
 	filter := primitive.M{}
@@ -55,7 +38,7 @@ func Routers() {
 
 	fmt.Println("Updating routes...")
 
-	// Built-In Default Routes
+	// Public Default Routes
 	Router.Post("/addRoute", AddRoutes)
 	Router.Post("/parseVars", ParseVars)
 	Router.Post("/login", account.Login)
@@ -63,9 +46,9 @@ func Routers() {
 	Router.Post("/validateToken", account.ValidateUserToken)
 	Router.Post("/updateToken", account.RefreshToken)
 
-	// Protected Routes
+	// Private Default Routes
 	Router.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(jwtauth.Verifier(auth.TokenAuth))
 		r.Use(jwtauth.Authenticator)
 		r.Post("/changePassword", account.ChangePassword)
 		r.Get("/test", TestPost)
@@ -150,7 +133,7 @@ func TestPost(w http.ResponseWriter, r *http.Request) {
 
 // AddRoutes function
 func AddRoutes(w http.ResponseWriter, r *http.Request) {
-	var target RouteValue
+	var target model.RouteValue
 
 	bodyReader, err := ioutil.ReadAll(r.Body)
 
@@ -175,8 +158,6 @@ func AddRoutes(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Adding routes to database...")
 
-	// database.SelectDatabase("routing", "routes")
-
 	postID, _ := database.Save("routing", "routes", target)
 
 	fmt.Print("Inserted ID: ")
@@ -188,7 +169,7 @@ func AddRoutes(w http.ResponseWriter, r *http.Request) {
 }
 
 // ValidateRoute Function
-func ValidateRoute(route RouteValue) bool {
+func ValidateRoute(route model.RouteValue) bool {
 	verbs := []string{"get", "post", "patch", "delete"}
 	categories := []string{"network", "compute", "storage", "security", "virtualization", "cloud"}
 
@@ -201,30 +182,4 @@ func ValidateRoute(route RouteValue) bool {
 	}
 
 	return true
-}
-
-func isAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		if r.Header["Token"] != nil {
-
-			token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("There was an error")
-				}
-				return mySigningKey, nil
-			})
-
-			if err != nil {
-				fmt.Fprintf(w, err.Error())
-			}
-
-			if token.Valid {
-				endpoint(w, r)
-			}
-		} else {
-
-			fmt.Fprintf(w, "Not Authorized")
-		}
-	})
 }

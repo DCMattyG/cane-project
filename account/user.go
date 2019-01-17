@@ -1,14 +1,14 @@
 package account
 
 import (
+	"cane-project/auth"
 	"cane-project/database"
+	"cane-project/model"
 	"cane-project/util"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
@@ -22,60 +22,9 @@ var privilegeLevel = map[string]int{
 	"readonly": 3,
 }
 
-// UserAccount Struct
-type UserAccount struct {
-	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	UserName  string             `json:"username" bson:"username"`
-	Password  string             `json:"password" bson:"password"`
-	Privilege int                `json:"privilege" bson:"privilege"`
-	Enable    bool               `json:"enable" bson:"enable"`
-	Token     string             `json:"token" bson:"token"`
-}
-
-// GenerateJWT Function
-func GenerateJWT() (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-
-	claims["authorized"] = true
-	claims["client"] = "Matthew Garrett"
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
-
-	tokenString, err := token.SignedString(mySigningKey)
-
-	if err != nil {
-		fmt.Println("Something Went Wrong: ", err.Error())
-		return "", err
-	}
-
-	return tokenString, nil
-}
-
-// ValidateJWT Function
-func ValidateJWT(t string) {
-	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("There was an error")
-		}
-		return mySigningKey, nil
-	})
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	if token.Valid {
-		fmt.Println("Valid Token!")
-	} else {
-
-		fmt.Println("Not Authorized!")
-	}
-}
-
 // Login Function
 func Login(w http.ResponseWriter, r *http.Request) {
-	var account UserAccount
+	var account model.UserAccount
 	var login map[string]interface{}
 
 	bodyReader, err := ioutil.ReadAll(r.Body)
@@ -110,7 +59,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // AddUser Function
 func AddUser(w http.ResponseWriter, r *http.Request) {
-	var target UserAccount
+	var target model.UserAccount
 
 	bodyReader, err := ioutil.ReadAll(r.Body)
 
@@ -140,19 +89,19 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	target.Token, err = GenerateJWT()
+	target.Token, err = auth.GenerateJWT(target)
 
 	userID, _ := database.Save("accounts", "users", target)
 
 	fmt.Print("Inserted ID: ")
 	fmt.Println(userID)
 
-	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "user added"})
+	util.RespondwithJSON(w, http.StatusCreated, structs.Map(target))
 }
 
 // ValidateUserToken Function
 func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
-	var account UserAccount
+	var account model.UserAccount
 
 	bodyReader, err := ioutil.ReadAll(r.Body)
 
@@ -184,12 +133,12 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 
 	mapstructure.Decode(foundVal, &account)
 
-	ValidateJWT(account.Token)
+	auth.ValidateJWT(account.Token)
 }
 
 // ChangePassword Function
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
-	var account UserAccount
+	var account model.UserAccount
 	var details map[string]interface{}
 
 	bodyReader, err := ioutil.ReadAll(r.Body)
@@ -226,10 +175,8 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 // RefreshToken Function
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var account UserAccount
+	var account model.UserAccount
 	var filter primitive.M
-
-	newToken, _ := GenerateJWT()
 
 	bodyReader, err := ioutil.ReadAll(r.Body)
 
@@ -247,13 +194,32 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	findVal, findErr := database.FindOne("accounts", "users", filter)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid account")
+		return
+	}
+
+	mapstructure.Decode(findVal, &account)
+
+	newToken, _ := auth.GenerateJWT(account)
+
 	update := primitive.M{
 		"$set": primitive.M{
 			"token": newToken,
 		},
 	}
 
-	updateVal, _ := database.FindAndUpdate("accounts", "users", filter, update)
+	updateVal, updateErr := database.FindAndUpdate("accounts", "users", filter, update)
+
+	if updateErr != nil {
+		fmt.Println(updateErr)
+		util.RespondWithError(w, http.StatusBadRequest, "token refresh failed")
+		return
+	}
+
 	mapstructure.Decode(updateVal, &account)
 
 	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "token updated", "token": newToken})
