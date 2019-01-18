@@ -49,7 +49,7 @@ func logger() http.Handler {
 
 // Main Function
 func main() {
-	var canePort string
+	canePort := ":"
 	httpPort := os.Getenv("CANE_PORT")
 
 	if len(httpPort) > 0 {
@@ -60,9 +60,9 @@ func main() {
 		// 	return
 		// }
 
-		canePort = ":" + httpPort
+		canePort += httpPort
 	} else {
-		canePort = ":8005"
+		canePort += "8005"
 	}
 
 	routing.Routers()

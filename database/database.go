@@ -6,6 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/mongodb/mongo-go-driver/mongo/options"
+
+	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 
 	"github.com/mongodb/mongo-go-driver/bson"
@@ -57,6 +60,31 @@ func FindDB(filter bson.M) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+// FindByID Function
+func FindByID(database string, collection string, id primitive.ObjectID) map[string]interface{} {
+	var result map[string]interface{}
+
+	filter := primitive.M{
+		"_id": id,
+	}
+
+	findVal, findErr := FindOne(database, collection, filter)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		return nil
+	}
+
+	mapErr := mapstructure.Decode(findVal, &result)
+
+	if mapErr != nil {
+		fmt.Println(mapErr)
+		return nil
+	}
+
+	return result
 }
 
 // FindOne Function
@@ -112,13 +140,16 @@ func FindAll(database string, collection string, filter bson.M) ([]primitive.M, 
 // FindAndUpdate Function
 func FindAndUpdate(database string, collection string, filter bson.M, update bson.M) (primitive.M, error) {
 	var result primitive.M
+	var opts options.FindOneAndUpdateOptions
+
+	opts.SetReturnDocument(1)
 
 	SelectDatabase(database, collection)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := db.FindOneAndUpdate(ctx, filter, update).Decode(&result)
+	err := db.FindOneAndUpdate(ctx, filter, update, &opts).Decode(&result)
 
 	if err != nil {
 		return result, err

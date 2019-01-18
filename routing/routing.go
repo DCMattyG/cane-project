@@ -45,14 +45,18 @@ func Routers() {
 	Router.Post("/login", account.Login)
 	Router.Post("/addUser", account.AddUser)
 	Router.Post("/validateToken", account.ValidateUserToken)
-	Router.Post("/updateToken", account.RefreshToken)
+	Router.Patch("/updateToken/{user}", account.RefreshToken)
 	Router.Get("/apiTest", TestCallAPI)
+	Router.Post("/addDevice", account.AddDevice)
+	Router.Get("/loadDevice/{name}", account.LoadDevice)
+	Router.Patch("/updateDevice/{name}", account.UpdateDevice)
+	Router.Post("/addApi", api.AddAPI)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
 		r.Use(jwtauth.Authenticator)
-		r.Post("/changePassword", account.ChangePassword)
+		r.Patch("/changePassword/{user}", account.ChangePassword)
 		r.Get("/test", TestPost)
 	})
 
@@ -102,12 +106,18 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		jsonErr := json.Unmarshal(bodyReader, &j)
 
 		if jsonErr != nil {
-			panic(jsonErr)
+			fmt.Println(jsonErr)
+			util.RespondWithError(w, http.StatusBadRequest, "invalid json")
+			return
 		}
 
 		j.JSONVars()
 
-		util.RespondwithJSON(w, http.StatusCreated, j)
+		jsonAPI := map[string]string{
+			"api": j.Marshal(),
+		}
+
+		util.RespondwithJSON(w, http.StatusCreated, jsonAPI)
 	}
 
 	if model.IsXML(string(bodyReader)) {
@@ -118,13 +128,20 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		xmlErr := dec.Decode(&x)
 
 		if xmlErr != nil {
-			panic(xmlErr)
+			fmt.Println(xmlErr)
+			util.RespondWithError(w, http.StatusBadRequest, "invalid xml")
+			return
 		}
 
 		x.ScrubXML()
 		x.XMLVars()
 
-		util.RespondwithXML(w, http.StatusCreated, x)
+		xmlAPI := map[string]string{
+			"api": x.Marshal(),
+		}
+
+		util.RespondwithJSON(w, http.StatusCreated, xmlAPI)
+		// util.RespondwithXML(w, http.StatusCreated, x)
 	}
 }
 
@@ -137,21 +154,7 @@ func TestPost(w http.ResponseWriter, r *http.Request) {
 func AddRoutes(w http.ResponseWriter, r *http.Request) {
 	var target model.RouteValue
 
-	bodyReader, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	err = util.UnmarshalJSON(bodyReader, &target)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&target)
 
 	if !(ValidateRoute(target)) {
 		util.RespondWithError(w, http.StatusBadRequest, "invalid route")
@@ -160,14 +163,17 @@ func AddRoutes(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Adding routes to database...")
 
-	postID, _ := database.Save("routing", "routes", target)
+	postID, postErr := database.Save("routing", "routes", target)
 
-	fmt.Print("Inserted ID: ")
-	fmt.Println(postID)
+	if postErr != nil {
+		fmt.Println(postErr)
+		util.RespondWithError(w, http.StatusBadRequest, "failed saving route")
+		return
+	}
 
 	Routers()
 
-	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "routes added"})
+	util.RespondwithJSON(w, http.StatusCreated, postID)
 }
 
 // ValidateRoute Function
@@ -193,6 +199,7 @@ func TestCallAPI(w http.ResponseWriter, r *http.Request) {
 	res := api.CallAPI()
 
 	json.NewDecoder(res.Body).Decode(&respBody)
+
 	fmt.Println(respBody)
 
 	util.RespondwithJSON(w, http.StatusCreated, respBody)

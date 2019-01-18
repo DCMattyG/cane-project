@@ -3,6 +3,7 @@ package auth
 import (
 	"cane-project/model"
 	"fmt"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
@@ -34,6 +35,7 @@ func GenerateJWT(account model.UserAccount) (string, error) {
 
 	claims["authorized"] = true
 	claims["client"] = account.FirstName + " " + account.LastName
+	claims["time"] = time.Now().Unix()
 	// claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
 	tokenString, err := token.SignedString(MySigningKey)

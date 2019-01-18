@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 )
 
 // JSONNode Type
@@ -26,4 +27,26 @@ func (j JSONNode) JSONVars() {
 			j[key] = "{{var_" + key + "}}"
 		}
 	}
+}
+
+// Marshal Function for JSONNode
+func (j JSONNode) Marshal(args ...int) string {
+	prefix := ""
+	indent := "    "
+
+	if len(args) == 1 {
+		prefix = strings.Repeat(" ", args[0])
+	} else if len(args) == 2 {
+		prefix = strings.Repeat(" ", args[0])
+		indent = strings.Repeat(" ", args[1])
+	}
+
+	jsonBytes, jsonErr := json.MarshalIndent(j, prefix, indent)
+	jsonString := string(jsonBytes)
+
+	if jsonErr != nil {
+		panic(jsonErr)
+	}
+
+	return jsonString
 }

@@ -2,7 +2,6 @@ package model
 
 import (
 	"bytes"
-	"encoding/json"
 	"encoding/xml"
 	"regexp"
 	"strings"
@@ -101,28 +100,6 @@ func (x XMLNode) Marshal(args ...int) string {
 	}
 
 	return xmlString
-}
-
-// Marshal Function for XMLNode
-func (j JSONNode) Marshal(args ...int) string {
-	prefix := ""
-	indent := "    "
-
-	if len(args) == 1 {
-		prefix = strings.Repeat(" ", args[0])
-	} else if len(args) == 2 {
-		prefix = strings.Repeat(" ", args[0])
-		indent = strings.Repeat(" ", args[1])
-	}
-
-	jsonBytes, jsonErr := json.MarshalIndent(j, prefix, indent)
-	jsonString := string(jsonBytes)
-
-	if jsonErr != nil {
-		panic(jsonErr)
-	}
-
-	return jsonString
 }
 
 // XMLVars Function for XMLNode

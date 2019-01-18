@@ -5,11 +5,12 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/fatih/structs"
+	"github.com/go-chi/chi"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -27,21 +28,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var account model.UserAccount
 	var login map[string]interface{}
 
-	bodyReader, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	err = util.UnmarshalJSON(bodyReader, &login)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&login)
 
 	filter := primitive.M{
 		"username": login["username"],
@@ -61,21 +48,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	var target model.UserAccount
 
-	bodyReader, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	err = util.UnmarshalJSON(bodyReader, &target)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&target)
 
 	filter := primitive.M{
 		"username": target.UserName,
@@ -89,7 +62,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	target.Token, err = auth.GenerateJWT(target)
+	target.Token, _ = auth.GenerateJWT(target)
 
 	userID, _ := database.Save("accounts", "users", target)
 
@@ -103,21 +76,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 	var account model.UserAccount
 
-	bodyReader, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	err = util.UnmarshalJSON(bodyReader, &account)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&account)
 
 	filter := primitive.M{
 		"username": account.UserName,
@@ -138,27 +97,12 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 
 // ChangePassword Function
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
-	var account model.UserAccount
 	var details map[string]interface{}
 
-	bodyReader, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	err = util.UnmarshalJSON(bodyReader, &details)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&details)
 
 	filter := primitive.M{
-		"username": details["username"],
+		"username": chi.URLParam(r, "user"),
 	}
 
 	update := primitive.M{
@@ -167,31 +111,23 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	updateVal, _ := database.FindAndUpdate("accounts", "users", filter, update)
-	mapstructure.Decode(updateVal, &account)
+	updateVal, updateErr := database.FindAndUpdate("accounts", "users", filter, update)
 
-	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "password changed"})
+	if updateErr != nil {
+		fmt.Println(updateErr)
+		util.RespondWithError(w, http.StatusBadRequest, "user not found")
+		return
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, updateVal)
 }
 
 // RefreshToken Function
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var account model.UserAccount
-	var filter primitive.M
 
-	bodyReader, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	err = util.UnmarshalJSON(bodyReader, &filter)
-
-	if err != nil {
-		fmt.Println(err)
-		util.RespondWithError(w, http.StatusBadRequest, "unmarshall failed")
-		return
+	filter := primitive.M{
+		"username": chi.URLParam(r, "user"),
 	}
 
 	findVal, findErr := database.FindOne("accounts", "users", filter)
@@ -220,7 +156,5 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapstructure.Decode(updateVal, &account)
-
-	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "token updated", "token": newToken})
+	util.RespondwithJSON(w, http.StatusCreated, updateVal)
 }

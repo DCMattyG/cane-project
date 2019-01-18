@@ -2,7 +2,6 @@ package model
 
 import (
 	"crypto/rsa"
-	"net"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -31,11 +30,14 @@ type Rfc3447 struct {
 	privateKey *rsa.PrivateKey
 }
 
-// API Type
+// API Struct
 type API struct {
-	APIAccount DeviceAccount // Target Device Account
-	APIBody    string        // Body of API with variables
-	APIType    string        // Options: 'xml' or 'json'
+	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Name    string             `json:"name" bson:"name"`
+	Account string             `json:"account" bson:"account"`
+	URL     string             `json:"url" bson:"url"`
+	Body    string             `json:"body" bson:"body"`
+	Type    string             `json:"type" bson:"type"`
 }
 
 // UserAccount Struct
@@ -54,7 +56,7 @@ type UserAccount struct {
 type DeviceAccount struct {
 	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name     string             `json:"name" bson:"name"`
-	IP       net.IP             `json:"ip" bson:"ip"`
+	IP       string             `json:"ip" bson:"ip"`
 	UserName string             `json:"username" bson:"username"`
 	Password string             `json:"password" bson:"password"`
 	AuthType string             `json:"authtype" bson:"authtype"`
