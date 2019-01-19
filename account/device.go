@@ -90,3 +90,22 @@ func UpdateDevice(w http.ResponseWriter, r *http.Request) {
 
 	util.RespondwithJSON(w, http.StatusOK, updateVal)
 }
+
+// ListDevices Function
+func ListDevices(w http.ResponseWriter, r *http.Request) {
+	var devices []string
+
+	foundVal, foundErr := database.FindAll("accounts", "devices", primitive.M{})
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		util.RespondWithError(w, http.StatusBadRequest, "device not found")
+		return
+	}
+
+	for key := range foundVal {
+		devices = append(devices, foundVal[key]["name"].(string))
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"devices": devices})
+}

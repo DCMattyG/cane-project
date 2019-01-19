@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
@@ -50,7 +51,9 @@ func Routers() {
 	Router.Post("/addDevice", account.AddDevice)
 	Router.Get("/loadDevice/{name}", account.LoadDevice)
 	Router.Patch("/updateDevice/{name}", account.UpdateDevice)
+	Router.Get("/listDevice", account.ListDevices)
 	Router.Post("/addApi", api.AddAPI)
+	Router.Get("/testPath/*", TestPath)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -148,6 +151,24 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 // TestPost function
 func TestPost(w http.ResponseWriter, r *http.Request) {
 	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "test post"})
+}
+
+// TestPath function
+func TestPath(w http.ResponseWriter, r *http.Request) {
+	path := chi.URLParam(r, "*")
+	routeContext := chi.RouteContext(r.Context())
+	routePattern := routeContext.RoutePattern()
+
+	account := strings.Replace(routePattern, "/", "", -1)
+	account = strings.Replace(account, "*", "", -1)
+
+	mapResponse := map[string]string{
+		"path":        path,
+		"routePatten": routePattern,
+		"account":     account,
+	}
+
+	util.RespondwithJSON(w, http.StatusCreated, mapResponse)
 }
 
 // AddRoutes function

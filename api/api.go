@@ -30,7 +30,7 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&api)
 
 	accountFilter := primitive.M{
-		"name": api.Account,
+		"name": api.DeviceAccount,
 	}
 
 	_, accountErr := database.FindOne("accounts", "devices", accountFilter)
@@ -45,7 +45,7 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 		"name": api.Name,
 	}
 
-	_, existErr := database.FindOne("apis", api.Account, existFilter)
+	_, existErr := database.FindOne("apis", api.DeviceAccount, existFilter)
 
 	if existErr == nil {
 		fmt.Println(existErr)
@@ -53,7 +53,7 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saveID, saveErr := database.Save("apis", api.Account, api)
+	saveID, saveErr := database.Save("apis", api.DeviceAccount, api)
 
 	if saveErr != nil {
 		fmt.Println(saveErr)
@@ -66,7 +66,7 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("Inserted ID: ")
 	fmt.Println(saveID.(primitive.ObjectID).Hex())
 
-	foundVal, _ := database.FindOne("apis", api.Account, existFilter)
+	foundVal, _ := database.FindOne("apis", api.DeviceAccount, existFilter)
 
 	util.RespondwithJSON(w, http.StatusCreated, foundVal)
 }
