@@ -139,12 +139,12 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		x.ScrubXML()
 		x.XMLVars()
 
-		xmlAPI := map[string]string{
-			"api": x.Marshal(),
-		}
+		// xmlAPI := map[string]string{
+		// 	"api": x.Marshal(),
+		// }
 
-		util.RespondwithJSON(w, http.StatusCreated, xmlAPI)
-		// util.RespondwithXML(w, http.StatusCreated, x)
+		// util.RespondwithJSON(w, http.StatusCreated, xmlAPI)
+		util.RespondwithXML(w, http.StatusCreated, x)
 	}
 }
 

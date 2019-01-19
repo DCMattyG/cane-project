@@ -103,9 +103,53 @@ func (x XMLNode) Marshal(args ...int) string {
 }
 
 // XMLVars Function for XMLNode
-func (x *XMLNode) XMLVars() {
+// func (x *XMLNode) XMLVars() {
+// 	for i := range x.Attrs {
+// 		tempAttr := "{{var_" + string(x.Attrs[i].Name.Local) + "}}"
+// 		x.Attrs[i].Value = tempAttr
+// 	}
+
+// 	contentString := string(x.Content)
+
+// 	if contentString != "" {
+// 		expression := regexp.MustCompile(`(<!--)[^-]+(-->)`)
+// 		content := expression.ReplaceAllString(contentString, "")
+
+// 		if IsCDATA(content) {
+// 			newContent := strings.Replace(content, "<![CDATA[", "", 1)
+// 			newContent = strings.Replace(newContent, "]]>", "", 1)
+
+// 			var cdataNode XMLNode
+
+// 			xmlErr := xml.Unmarshal([]byte(newContent), &cdataNode)
+
+// 			if xmlErr != nil {
+// 				panic(xmlErr)
+// 			}
+
+// 			cdataNode.XMLVars()
+
+// 			cdataBytes, cdataErr := xml.Marshal(cdataNode)
+
+// 			if cdataErr != nil {
+// 				panic(cdataErr)
+// 			}
+
+// 			x.Content = []byte("<![CDATA[" + string(cdataBytes) + "]]>")
+// 		} else {
+// 			x.Content = []byte("{{var_" + string(x.XMLName.Local) + "}}")
+// 		}
+// 	}
+
+// 	for i := 0; i < len(x.Nodes); i++ {
+// 		x.Nodes[i].XMLVars()
+// 	}
+// }
+
+// XMLVars Function for XMLNode
+func (x *XMLNode) XMLVars(parent ...string) {
 	for i := range x.Attrs {
-		tempAttr := "{{var_" + string(x.Attrs[i].Name.Local) + "}}"
+		tempAttr := "{{" + string(x.XMLName.Local) + "_" + string(x.Attrs[i].Name.Local) + "}}"
 		x.Attrs[i].Value = tempAttr
 	}
 
@@ -127,7 +171,7 @@ func (x *XMLNode) XMLVars() {
 				panic(xmlErr)
 			}
 
-			cdataNode.XMLVars()
+			cdataNode.XMLVars(string(x.XMLName.Local))
 
 			cdataBytes, cdataErr := xml.Marshal(cdataNode)
 
@@ -137,12 +181,12 @@ func (x *XMLNode) XMLVars() {
 
 			x.Content = []byte("<![CDATA[" + string(cdataBytes) + "]]>")
 		} else {
-			x.Content = []byte("{{var_" + string(x.XMLName.Local) + "}}")
+			x.Content = []byte("{{" + parent[0] + "_" + string(x.XMLName.Local) + "}}")
 		}
 	}
 
 	for i := 0; i < len(x.Nodes); i++ {
-		x.Nodes[i].XMLVars()
+		x.Nodes[i].XMLVars(string(x.XMLName.Local))
 	}
 }
 
