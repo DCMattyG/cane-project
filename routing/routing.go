@@ -97,6 +97,8 @@ func Routers() {
 func ParseVars(w http.ResponseWriter, r *http.Request) {
 	bodyReader, err := ioutil.ReadAll(r.Body)
 
+	fmt.Println(string(bodyReader))
+
 	if err != nil {
 		fmt.Println(err)
 		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
