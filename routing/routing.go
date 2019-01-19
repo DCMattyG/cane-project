@@ -117,10 +117,11 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		j.JSONVars()
 
 		jsonAPI := map[string]string{
-			"api": j.Marshal(),
+			"parsedAPI": j.Marshal(),
+			"type":      "json",
 		}
 
-		util.RespondwithJSON(w, http.StatusCreated, jsonAPI)
+		util.RespondwithJSON(w, http.StatusOK, jsonAPI)
 	}
 
 	if model.IsXML(string(bodyReader)) {
@@ -139,12 +140,13 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		x.ScrubXML()
 		x.XMLVars()
 
-		// xmlAPI := map[string]string{
-		// 	"api": x.Marshal(),
-		// }
+		xmlAPI := map[string]string{
+			"parsedAPI": x.Marshal(),
+			"type":      "xml",
+		}
 
-		// util.RespondwithJSON(w, http.StatusCreated, xmlAPI)
-		util.RespondwithXML(w, http.StatusCreated, x)
+		util.RespondwithJSON(w, http.StatusOK, xmlAPI)
+		//util.RespondwithXML(w, http.StatusOK, x)
 	}
 }
 
