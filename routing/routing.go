@@ -257,14 +257,14 @@ func TestCallAPI(w http.ResponseWriter, r *http.Request) {
 
 	callAPI.Body = tempAPI
 
-	resp := api.CallAPI(callAPI)
+	// resp := api.CallAPI(callAPI)
 
-	// json.NewDecoder(res.Body).Decode(&respBody)
-
-	defer resp.Body.Close()
-	respBody, _ := ioutil.ReadAll(resp.Body)
+	// defer resp.Body.Close()
+	// respBody, _ := ioutil.ReadAll(resp.Body)
 
 	// fmt.Println(string(respBody))
+
+	respBody := ""
 
 	util.RespondwithJSON(w, http.StatusCreated, string(respBody))
 }
