@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -73,70 +72,26 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 // CallAPI Function
-func CallAPI(api model.API) *http.Response {
-	// transport := &http.Transport{}
+func CallAPI(req *http.Request, proxy string) *http.Response {
+	transport := &http.Transport{}
 	client := &http.Client{}
 
-	/* Temp Variables */
-	// host, err := url.Parse("https://intersight.com/api/v1")
-	// host, err := url.Parse("https://deckofcardsapi.com/api/deck/new/")
-	host, hostErr := url.Parse(api.URL)
-
-	if hostErr != nil {
-		fmt.Println(hostErr)
-		return nil
-	}
-
-	// method := "GET"
-	method := strings.ToUpper(api.Method)
-	// resourcePath := "/ntp/Policies"
-	resourcePath := ""
-	targetURL := host.String() + resourcePath
-	// var bodyString string
-	bodyString := api.Body
-	// proxy := "http://proxy.esl.cisco.com"
-	// proxy := ""
-	// proxyURL, err := url.Parse(proxy)
-	// queryPath := ""
-	// var requestHeader map[string]string
-	/* End Temp Variables */
-
-	// Create HTTP request
-	fmt.Println("Method: ", method)
-	fmt.Println("TargetURL: ", targetURL)
-	fmt.Println("Body: ", strings.NewReader(bodyString))
-	// req, err := http.NewRequest(method, host.String(), nil)
-
-	fmt.Println("Creating API Request...")
-
-	req, err := http.NewRequest(method, host.String(), strings.NewReader(bodyString))
-
+	// Verify the proxyURL is properly formatted
+	proxyURL, err := url.Parse(proxy)
 	if err != nil {
-		log.Print(err)
-		fmt.Println("Errored when creating the HTTP request!")
-		return nil
+		fmt.Println("Invalid proxy URL format!")
 	}
-
-	// Append headers to HTTP request
-	// for key, value := range requestHeader {
-	// 	req.Header.Add(key, value)
-	// }
 
 	// Add proxy settings to the HTTP Transport object
-	// if len(proxyURL.RawPath) > 0 {
-	// 	transport = &http.Transport{
-	// 		// Proxy: http.ProxyURL(proxyURL),
-	// 	}
+	if len(proxyURL.RawPath) > 0 {
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
 
-	// 	client = &http.Client{
-	// 		Transport: transport,
-	// 	}
-	// }
-
-	// Add query params and call HTTP request
-	// req.URL.RawQuery = queryPath
-
-	fmt.Println("Executing API Call...")
+		client = &http.Client{
+			Transport: transport,
+		}
+	}
 
 	resp, err := client.Do(req)
 
@@ -145,17 +100,6 @@ func CallAPI(api model.API) *http.Response {
 		fmt.Println("Errored when sending request to the server!")
 		return nil
 	}
-
-	fmt.Println("Response:")
-	fmt.Println(resp)
-
-	// defer resp.Body.Close()
-
-	// body, err := ioutil.ReadAll(resp.Body)
-	// responseBody := string(body)
-
-	// fmt.Println("Body:")
-	// fmt.Println(responseBody)
 
 	return resp
 }

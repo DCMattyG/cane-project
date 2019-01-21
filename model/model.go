@@ -1,34 +1,8 @@
 package model
 
 import (
-	"crypto/rsa"
-
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
-
-// Basic Auth Type
-type Basic struct {
-	userName string
-	password string
-}
-
-// Session Auth Type
-type Session struct {
-	userName       string
-	password       string
-	cookieLifetime int32
-}
-
-// APIKey Auth Type
-type APIKey struct {
-	key string
-}
-
-// Rfc3447 Auth Type
-type Rfc3447 struct {
-	publicKey  string
-	privateKey *rsa.PrivateKey
-}
 
 // API Struct
 type API struct {

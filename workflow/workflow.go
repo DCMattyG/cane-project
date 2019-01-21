@@ -1,14 +1,22 @@
 package workflow
 
 import (
+	"cane-project/database"
+	"cane-project/util"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
 // Workflow Struct
 type Workflow struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Name      string             `json:"name" bson:"name"`
+	Type      string             `json:"type" bson:"type"`
 	Steps     []Step             `json:"steps" bson:"steps"`
-	Claimcode int                `json:"claimCode" bson:"claimCode"`
+	ClaimCode int                `json:"claimCode" bson:"claimCode"`
 }
 
 // Step Struct
@@ -19,4 +27,33 @@ type Step struct {
 	DeviceAccount string             `json:"deviceAccount" bson:"deviceAccount"`
 	VarMap        map[string]string  `json:"varMap" bson:"varMap"`
 	Status        int                `json:"status" bson:"status"`
+}
+
+// AddWorkflow Function
+func AddWorkflow(w http.ResponseWriter, r *http.Request) {
+	var target Workflow
+
+	json.NewDecoder(r.Body).Decode(&target)
+
+	filter := primitive.M{
+		"name": target.Name,
+	}
+
+	_, findErr := database.FindOne("workflow", "workflows", filter)
+
+	if findErr == nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "existing workflow")
+		return
+	}
+
+	deviceID, _ := database.Save("workflows", "workflow", target)
+	target.ID = deviceID.(primitive.ObjectID)
+
+	fmt.Print("Inserted ID: ")
+	fmt.Println(deviceID.(primitive.ObjectID).Hex())
+
+	foundVal, _ := database.FindOne("workflow", "workflows", filter)
+
+	util.RespondwithJSON(w, http.StatusCreated, foundVal)
 }

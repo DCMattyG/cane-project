@@ -1,7 +1,9 @@
 package util
 
 import (
+	"bytes"
 	"cane-project/model"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
@@ -22,6 +24,11 @@ type XMLNode struct {
 // JSONNode Struct
 type JSONNode struct {
 	Node map[string]interface{}
+}
+
+// EncodeBase64 Function
+func EncodeBase64(encode string) string {
+	return base64.StdEncoding.EncodeToString([]byte(encode))
 }
 
 // RespondwithJSON write json response format
@@ -45,6 +52,19 @@ func RespondwithXML(w http.ResponseWriter, code int, payload interface{}) {
 // RespondWithError return error message
 func RespondWithError(w http.ResponseWriter, code int, msg string) {
 	RespondwithJSON(w, code, map[string]string{"message": msg})
+}
+
+// JSONPrettyPrint Function
+// Formats JSON into a much more easily readable format
+// by proeprly indenting with two spaces where needed
+// and returns it as a string
+func JSONPrettyPrint(input string) string {
+	var output bytes.Buffer
+	err := json.Indent(&output, []byte(input), "", "  ")
+	if err != nil {
+		return input
+	}
+	return output.String()
 }
 
 // UnmarshalJSON Function
