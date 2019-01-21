@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
@@ -56,4 +57,21 @@ func AddWorkflow(w http.ResponseWriter, r *http.Request) {
 	foundVal, _ := database.FindOne("workflow", "workflows", filter)
 
 	util.RespondwithJSON(w, http.StatusCreated, foundVal)
+}
+
+// LoadWorkflow Function
+func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
+	filter := primitive.M{
+		"name": chi.URLParam(r, "name"),
+	}
+
+	foundVal, foundErr := database.FindOne("workflow", "workflows", filter)
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		util.RespondWithError(w, http.StatusBadRequest, "workflow not found")
+		return
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, foundVal)
 }

@@ -49,6 +49,15 @@ func RespondwithXML(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
+// RespondwithString write xml response format
+func RespondwithString(w http.ResponseWriter, code int, payload interface{}) {
+	response := []byte(payload.(string))
+	// fmt.Println(payload)
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
 // RespondWithError return error message
 func RespondWithError(w http.ResponseWriter, code int, msg string) {
 	RespondwithJSON(w, code, map[string]string{"message": msg})

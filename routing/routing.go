@@ -20,6 +20,7 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"github.com/tidwall/gjson"
 )
 
 // Router Variable
@@ -58,6 +59,7 @@ func Routers() {
 	// Router.Get("/aplTest", APLTest)
 	Router.Post("/testJSON", JSONTest)
 	Router.Post("/testXML", XMLTest)
+	Router.Post("/testGJSON", TestGJSON)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -330,4 +332,23 @@ func XMLTest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(j.ToXML())
 
 	util.RespondwithJSON(w, http.StatusCreated, mapString)
+}
+
+// TestGJSON Function
+func TestGJSON(w http.ResponseWriter, r *http.Request) {
+	var output map[string]interface{}
+
+	// json := `{"name":{"first":"Janet","last":"Prichard"},"age":47}`
+
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	bodyString := string(bodyBytes)
+
+	grab := "cuicoperationRequest.payload.cdata.ucsUuidPool.accountName"
+	value := gjson.Get(bodyString, grab)
+
+	gJSON := value.String()
+
+	json.Unmarshal([]byte(gJSON), &output)
+
+	util.RespondwithJSON(w, http.StatusCreated, output)
 }
