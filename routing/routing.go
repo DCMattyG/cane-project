@@ -299,78 +299,35 @@ func JSONTest(w http.ResponseWriter, r *http.Request) {
 
 // XMLTest Function
 func XMLTest(w http.ResponseWriter, r *http.Request) {
-	var x model.XMLNode
-	var j model.JSONNode
-
 	bodyReader, _ := ioutil.ReadAll(r.Body)
 
-	buf := bytes.NewBuffer(bodyReader)
-	dec := xml.NewDecoder(buf)
-	xmlErr := dec.Decode(&x)
+	x, xmlErr := model.XMLfromBytes(bodyReader)
 
 	if xmlErr != nil {
 		fmt.Println(xmlErr)
 		util.RespondWithError(w, http.StatusBadRequest, "invalid xml")
-		return
 	}
-
-	x.ScrubXML()
 
 	mapString := x.XMLtoJSON()
 
 	fmt.Println(x.XMLtoJSON())
-	// fmt.Println("-------------------------------")
+	fmt.Println("-------------------------------")
 
 	jBytes, _ := json.MarshalIndent(mapString, "", "  ")
 
 	jString := string(jBytes)
 
 	fmt.Println(jString)
-
 	fmt.Println("-------------------------------")
 
-	json.Unmarshal([]byte(jString), &j)
+	j, jsonErr := model.JSONfromBytes(jBytes)
+
+	if jsonErr != nil {
+		fmt.Println(jsonErr)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid json")
+	}
 
 	fmt.Println(j.ToXML())
-
-	// testMap := map[string]interface{}{
-	// 	"cuicoperationRequest": map[string]interface{}{
-	// 		"payload": map[string]interface{}{
-	// 			"cdata": map[string]interface{}{
-	// 				"ucsUuidPool": map[string]interface{}{
-	// 					"name": map[string]interface{}{
-	// 						"data": "Test_UUID_Pool",
-	// 					},
-	// 					"descr": map[string]interface{}{
-	// 						"data": "Test_UUID_Pool",
-	// 					},
-	// 					"prefix": map[string]interface{}{
-	// 						"data": "other",
-	// 					},
-	// 					"otherPrefix": map[string]interface{}{
-	// 						"data": "00000000-0000-0000",
-	// 					},
-	// 					"accountName": map[string]interface{}{
-	// 						"data": "ucsm-248",
-	// 					},
-	// 					"org": map[string]interface{}{
-	// 						"data": "org-root",
-	// 					},
-	// 					"firstMACAddress": map[string]interface{}{
-	// 						"data": "0000-000000000001",
-	// 					},
-	// 					"size": map[string]interface{}{
-	// 						"data": 1,
-	// 					},
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// }
-
-	// jsonMap, _ := json.Marshal(testMap)
-
-	// fmt.Println(string(jsonMap))
 
 	util.RespondwithJSON(w, http.StatusCreated, mapString)
 }

@@ -21,6 +21,19 @@ func IsJSON(s string) bool {
 	return json.Unmarshal([]byte(s), &js) == nil
 }
 
+// JSONfromBytes Function
+func JSONfromBytes(input []byte) (JSONNode, error) {
+	var j JSONNode
+
+	jsonErr := json.Unmarshal(input, &j)
+
+	if jsonErr != nil {
+		return j, jsonErr
+	}
+
+	return j, nil
+}
+
 // JSONVars Function for JSONNode
 func (j JSONNode) JSONVars() {
 	for key, val := range j {
@@ -77,46 +90,29 @@ func (j JSONNode) ToXML() string {
 	for k, v := range j {
 		switch valType := reflect.TypeOf(v).Kind(); valType {
 		case reflect.Map:
-			fmt.Println("MAP: ", v)
 			mapstructure.Decode(v, &newNode)
 
-			if k == "-cdata" {
+			if k == "cdata" {
 				returnString += "<![CDATA["
 				returnString += newNode.ToXML()
 				returnString += "]]>"
 			} else {
-				val := reflect.ValueOf(v)
-				for _, e := range val.MapKeys() {
-					fmt.Println("INTERFACE: ", e.Interface().(string))
-				}
-				if attrs, ok := v.(map[string]interface{}); ok {
-					fmt.Println("ATTRS: ", v)
-					fmt.Println("x", attrs)
+				if attrs, ok := v.(map[string]interface{})["attr:"]; ok {
 					returnString += "<" + k
 
-					// attrReflect := reflect.ValueOf(attrs)
+					for attrKey, attrVal := range attrs.(map[string]interface{}) {
+						returnString += " " + attrKey + "=\""
+						returnString += attrVal.(string) + "\""
+					}
 
-					// for i := 0; i < attrReflect.Len(); i++ {
-					// 	fmt.Println("ATTRREFLECT: ", attrReflect.Index(i))
-					// 	for attrKey, attrVal := range attrReflect.Index(i) {
-					// 		returnString += " "
-					// 		returnString += attrKey
-					// 		returnString += "=\""
-					// 		returnString += attrVal.(string)
-					// 		returnString += "\""
-					// 	}
-					// }
-
-					returnString += "/>"
+					returnString += " />"
 				} else {
-					fmt.Println("NOT ATTRS: ", v)
 					returnString += "<" + k + ">"
 					returnString += newNode.ToXML()
 					returnString += "</" + k + ">"
 				}
 			}
 		case reflect.String:
-			fmt.Println("STRING: ", v)
 			if k == "data" {
 				returnString += v.(string)
 			} else {

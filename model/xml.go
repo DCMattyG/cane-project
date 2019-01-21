@@ -30,6 +30,23 @@ func IsXML(s string) bool {
 	return true
 }
 
+// XMLfromBytes Function
+func XMLfromBytes(input []byte) (XMLNode, error) {
+	var x XMLNode
+
+	buf := bytes.NewBuffer(input)
+	dec := xml.NewDecoder(buf)
+	xmlErr := dec.Decode(&x)
+
+	if xmlErr != nil {
+		return x, xmlErr
+	}
+
+	x.ScrubXML()
+
+	return x, nil
+}
+
 // ScrubXML Function
 func (x *XMLNode) ScrubXML() {
 	if len(x.Nodes) > 0 {
@@ -121,30 +138,30 @@ func (x *XMLNode) XMLtoJSON() map[string]interface{} {
 
 // XMLtoJSONRecursive Function
 func (x *XMLNode) XMLtoJSONRecursive() map[string]interface{} {
-	var attrList []map[string]interface{}
+	// var attrList []map[string]interface{}
 
 	currNode := map[string]interface{}{}
-	// attrItems := map[string]interface{}{}
+	attrItems := map[string]interface{}{}
 
 	x.ScrubXML()
 
 	for i := range x.Attrs {
-		// attrItems[x.Attrs[i].Name.Local] = x.Attrs[i].Value
+		attrItems[x.Attrs[i].Name.Local] = x.Attrs[i].Value
 
-		attrItem := map[string]interface{}{
-			x.Attrs[i].Name.Local: x.Attrs[i].Value,
-		}
+		// attrItem := map[string]interface{}{
+		// 	x.Attrs[i].Name.Local: x.Attrs[i].Value,
+		// }
 
-		attrList = append(attrList, attrItem)
+		// attrList = append(attrList, attrItem)
 	}
 
-	// if len(attrItems) > 0 {
-	// 	currNode["-attrs:"] = attrItems
+	if len(attrItems) > 0 {
+		currNode["attr:"] = attrItems
+	}
+
+	// if len(attrList) > 0 {
+	// 	currNode["-attrs:"] = attrList
 	// }
-
-	if len(attrList) > 0 {
-		currNode["-attrs:"] = attrList
-	}
 
 	contentString := string(x.Content)
 
@@ -164,7 +181,7 @@ func (x *XMLNode) XMLtoJSONRecursive() map[string]interface{} {
 				panic(xmlErr)
 			}
 
-			currNode["-cdata"] = map[string]interface{}{
+			currNode["cdata"] = map[string]interface{}{
 				cdataNode.XMLName.Local: cdataNode.XMLtoJSONRecursive(),
 			}
 		} else {
