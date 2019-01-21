@@ -109,3 +109,24 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 
 	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"devices": devices})
 }
+
+// ListDeviceAPIs Function
+func ListDeviceAPIs(w http.ResponseWriter, r *http.Request) {
+	device := chi.URLParam(r, "device")
+
+	var apis []string
+
+	foundVal, foundErr := database.FindAll("apis", device, primitive.M{})
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		util.RespondWithError(w, http.StatusBadRequest, "device not found")
+		return
+	}
+
+	for key := range foundVal {
+		apis = append(apis, foundVal[key]["name"].(string))
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"apis": apis})
+}

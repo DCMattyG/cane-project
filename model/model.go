@@ -35,6 +35,7 @@ type API struct {
 	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name          string             `json:"name" bson:"name"`
 	DeviceAccount string             `json:"deviceAccount" bson:"deviceAccount"`
+	Method        string             `json:"method" bson:"method"`
 	URL           string             `json:"url" bson:"url"`
 	Body          string             `json:"body" bson:"body"`
 	Type          string             `json:"type" bson:"type"`

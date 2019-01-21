@@ -47,13 +47,17 @@ func Routers() {
 	Router.Post("/addUser", account.AddUser)
 	Router.Post("/validateToken", account.ValidateUserToken)
 	Router.Patch("/updateToken/{user}", account.RefreshToken)
-	Router.Get("/apiTest", TestCallAPI)
+	Router.Post("/apiTest", TestCallAPI)
 	Router.Post("/addDevice", account.AddDevice)
 	Router.Get("/loadDevice/{name}", account.LoadDevice)
 	Router.Patch("/updateDevice/{name}", account.UpdateDevice)
 	Router.Get("/listDevice", account.ListDevices)
+	Router.Get("/deviceApis/{device}", account.ListDeviceAPIs)
 	Router.Post("/addApi", api.AddAPI)
 	Router.Get("/testPath/*", TestPath)
+	// Router.Get("/aplTest", APLTest)
+	Router.Post("/testJSON", JSONTest)
+	Router.Post("/testXML", XMLTest)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -97,7 +101,7 @@ func Routers() {
 func ParseVars(w http.ResponseWriter, r *http.Request) {
 	bodyReader, err := ioutil.ReadAll(r.Body)
 
-	fmt.Println(string(bodyReader))
+	// fmt.Println(string(bodyReader))
 
 	if err != nil {
 		fmt.Println(err)
@@ -140,7 +144,7 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		}
 
 		x.ScrubXML()
-		x.XMLVars()
+		// x.XMLVars()
 
 		xmlAPI := map[string]string{
 			"parsedAPI": x.Marshal(),
@@ -219,13 +223,154 @@ func ValidateRoute(route model.RouteValue) bool {
 
 // TestCallAPI Function
 func TestCallAPI(w http.ResponseWriter, r *http.Request) {
-	var respBody map[string]interface{}
+	// var respBody map[string]interface{}
+	var apiInput map[string]interface{}
+	var callAPI model.API
 
-	res := api.CallAPI()
+	json.NewDecoder(r.Body).Decode(&apiInput)
 
-	json.NewDecoder(res.Body).Decode(&respBody)
+	targetFilter := primitive.M{
+		"name": apiInput["apiName"],
+	}
 
-	fmt.Println(respBody)
+	targetAPI, targetErr := database.FindOne("apis", apiInput["deviceAccount"].(string), targetFilter)
 
-	util.RespondwithJSON(w, http.StatusCreated, respBody)
+	if targetErr != nil {
+		fmt.Println(targetErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no such api")
+		return
+	}
+
+	mapstructure.Decode(targetAPI, &callAPI)
+
+	apiMap := apiInput["apiMap"].(map[string]interface{})
+
+	// fmt.Println(apiMap)
+
+	tempAPI := targetAPI["body"].(string)
+
+	// fmt.Println(tempAPI)
+
+	for key, val := range apiMap {
+		tempAPI = strings.Replace(tempAPI, key, val.(string), 1)
+	}
+
+	callAPI.Body = tempAPI
+
+	resp := api.CallAPI(callAPI)
+
+	// json.NewDecoder(res.Body).Decode(&respBody)
+
+	defer resp.Body.Close()
+	respBody, _ := ioutil.ReadAll(resp.Body)
+
+	// fmt.Println(string(respBody))
+
+	util.RespondwithJSON(w, http.StatusCreated, string(respBody))
+}
+
+// APLTest Function
+// func APLTest(w http.ResponseWriter, r *http.Request) {
+// 	model.APLtoJSON()
+// }
+
+// JSONTest Function
+func JSONTest(w http.ResponseWriter, r *http.Request) {
+	test := map[string]interface{}{
+		"results": []map[string]interface{}{
+			{
+				"moid": "65f345ff345sss24dd",
+				"type": "compute",
+				"tags": []string{"hot", "cold"},
+				"parent": map[string]interface{}{
+					"moid": "43r34r4h743834",
+					"obj":  "chassis",
+				},
+			},
+		},
+	}
+
+	fixed := model.JSONNode(test).StripJSON()
+
+	// model.JSONNode(test).StripJSON()
+
+	util.RespondwithJSON(w, http.StatusCreated, fixed)
+}
+
+// XMLTest Function
+func XMLTest(w http.ResponseWriter, r *http.Request) {
+	var x model.XMLNode
+	var j model.JSONNode
+
+	bodyReader, _ := ioutil.ReadAll(r.Body)
+
+	buf := bytes.NewBuffer(bodyReader)
+	dec := xml.NewDecoder(buf)
+	xmlErr := dec.Decode(&x)
+
+	if xmlErr != nil {
+		fmt.Println(xmlErr)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid xml")
+		return
+	}
+
+	x.ScrubXML()
+
+	mapString := x.XMLtoJSON()
+
+	fmt.Println(x.XMLtoJSON())
+	// fmt.Println("-------------------------------")
+
+	jBytes, _ := json.MarshalIndent(mapString, "", "  ")
+
+	jString := string(jBytes)
+
+	fmt.Println(jString)
+
+	fmt.Println("-------------------------------")
+
+	json.Unmarshal([]byte(jString), &j)
+
+	fmt.Println(j.ToXML())
+
+	// testMap := map[string]interface{}{
+	// 	"cuicoperationRequest": map[string]interface{}{
+	// 		"payload": map[string]interface{}{
+	// 			"cdata": map[string]interface{}{
+	// 				"ucsUuidPool": map[string]interface{}{
+	// 					"name": map[string]interface{}{
+	// 						"data": "Test_UUID_Pool",
+	// 					},
+	// 					"descr": map[string]interface{}{
+	// 						"data": "Test_UUID_Pool",
+	// 					},
+	// 					"prefix": map[string]interface{}{
+	// 						"data": "other",
+	// 					},
+	// 					"otherPrefix": map[string]interface{}{
+	// 						"data": "00000000-0000-0000",
+	// 					},
+	// 					"accountName": map[string]interface{}{
+	// 						"data": "ucsm-248",
+	// 					},
+	// 					"org": map[string]interface{}{
+	// 						"data": "org-root",
+	// 					},
+	// 					"firstMACAddress": map[string]interface{}{
+	// 						"data": "0000-000000000001",
+	// 					},
+	// 					"size": map[string]interface{}{
+	// 						"data": 1,
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// }
+
+	// jsonMap, _ := json.Marshal(testMap)
+
+	// fmt.Println(string(jsonMap))
+
+	util.RespondwithJSON(w, http.StatusCreated, mapString)
 }

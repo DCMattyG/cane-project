@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -72,23 +73,27 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 // CallAPI Function
-func CallAPI() *http.Response {
+func CallAPI(api model.API) *http.Response {
 	// transport := &http.Transport{}
 	client := &http.Client{}
 
 	/* Temp Variables */
 	// host, err := url.Parse("https://intersight.com/api/v1")
-	host, err := url.Parse("https://deckofcardsapi.com/api/deck/new/")
+	// host, err := url.Parse("https://deckofcardsapi.com/api/deck/new/")
+	host, hostErr := url.Parse(api.URL)
 
-	if err != nil {
-		panic("Cannot parse *host*!")
+	if hostErr != nil {
+		fmt.Println(hostErr)
+		return nil
 	}
 
-	method := "GET"
+	// method := "GET"
+	method := strings.ToUpper(api.Method)
 	// resourcePath := "/ntp/Policies"
 	resourcePath := ""
 	targetURL := host.String() + resourcePath
 	// var bodyString string
+	bodyString := api.Body
 	// proxy := "http://proxy.esl.cisco.com"
 	// proxy := ""
 	// proxyURL, err := url.Parse(proxy)
@@ -99,8 +104,12 @@ func CallAPI() *http.Response {
 	// Create HTTP request
 	fmt.Println("Method: ", method)
 	fmt.Println("TargetURL: ", targetURL)
-	// fmt.Println("Body: ", strings.NewReader(bodyString))
-	req, err := http.NewRequest(method, host.String(), nil)
+	fmt.Println("Body: ", strings.NewReader(bodyString))
+	// req, err := http.NewRequest(method, host.String(), nil)
+
+	fmt.Println("Creating API Request...")
+
+	req, err := http.NewRequest(method, host.String(), strings.NewReader(bodyString))
 
 	if err != nil {
 		log.Print(err)
@@ -126,6 +135,9 @@ func CallAPI() *http.Response {
 
 	// Add query params and call HTTP request
 	// req.URL.RawQuery = queryPath
+
+	fmt.Println("Executing API Call...")
+
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -136,6 +148,14 @@ func CallAPI() *http.Response {
 
 	fmt.Println("Response:")
 	fmt.Println(resp)
+
+	// defer resp.Body.Close()
+
+	// body, err := ioutil.ReadAll(resp.Body)
+	// responseBody := string(body)
+
+	// fmt.Println("Body:")
+	// fmt.Println(responseBody)
 
 	return resp
 }
