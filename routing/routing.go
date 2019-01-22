@@ -43,6 +43,19 @@ func Routers() {
 
 	fmt.Println("Updating routes...")
 
+	cors := cors.New(cors.Options{
+		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+
+	// Router.Use(cors.Handler)
+
 	// Public Default Routes
 	Router.Post("/addRoute", AddRoutes)
 	Router.Post("/parseVars", ParseVars)
@@ -54,7 +67,7 @@ func Routers() {
 	Router.Post("/addDevice", account.AddDevice)
 	Router.Get("/loadDevice/{name}", account.LoadDevice)
 	Router.Patch("/updateDevice/{name}", account.UpdateDevice)
-	Router.Get("/listDevice", account.ListDevices)
+	// Router.Get("/listDevice", account.ListDevices)
 	Router.Get("/deviceApis/{device}", account.ListDeviceAPIs)
 	Router.Post("/addApi", api.AddAPI)
 	Router.Get("/testPath/*", TestPath)
@@ -67,8 +80,15 @@ func Routers() {
 	Router.Get("/listWorkflow", workflow.ListWorkflows)
 	Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
 
+	// Public Routes
+	Router.Group(func(r chi.Router) {
+		r.Use(cors.Handler)
+		r.Get("/listDevice", account.ListDevices)
+	})
+
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
+		r.Use(cors.Handler)
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
 		r.Use(jwtauth.Authenticator)
 		r.Patch("/changePassword/{user}", account.ChangePassword)
@@ -103,19 +123,6 @@ func Routers() {
 			}
 		}
 	}
-
-	cors := cors.New(cors.Options{
-		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	})
-
-	Router.Use(cors.Handler)
 }
 
 // ParseVars function
