@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/mitchellh/mapstructure"
+
 	"github.com/go-chi/chi"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -106,4 +110,33 @@ func ListWorkflows(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"workflows": workflows})
+}
+
+// ExecuteWorkflow Function
+func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
+	var targetWorkflow Workflow
+
+	filter := primitive.M{
+		"name": chi.URLParam(r, "name"),
+	}
+
+	foundVal, foundErr := database.FindOne("workflows", "workflow", filter)
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		util.RespondWithError(w, http.StatusBadRequest, "workflow not found")
+		return
+	}
+
+	mapErr := mapstructure.Decode(foundVal, targetWorkflow)
+
+	if mapErr != nil {
+		fmt.Println(mapErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error parsing workflow")
+		return
+	}
+
+	spew.Dump(targetWorkflow)
+
+	util.RespondwithJSON(w, http.StatusOK, foundVal)
 }

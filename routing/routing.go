@@ -78,6 +78,7 @@ func Routers() {
 	// Router.Post("/addWorkflow", workflow.AddWorkflow)
 	// Router.Get("/listWorkflow", workflow.ListWorkflows)
 	// Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
+	Router.Get("/callWorkflow/{name}", workflow.ExecuteWorkflow)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
