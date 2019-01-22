@@ -64,6 +64,7 @@ func Routers() {
 	Router.Post("/testAPIAuth", TestAPIAuth)
 	Router.Post("/addWorkflow", workflow.AddWorkflow)
 	Router.Get("/listWorkflow", workflow.ListWorkflows)
+	Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
