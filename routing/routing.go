@@ -60,6 +60,7 @@ func Routers() {
 	Router.Post("/testJSON", JSONTest)
 	Router.Post("/testXML", XMLTest)
 	Router.Post("/testGJSON", TestGJSON)
+	Router.Post("/testAPIAuth", TestAPIAuth)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -351,4 +352,84 @@ func TestGJSON(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(gJSON), &output)
 
 	util.RespondwithJSON(w, http.StatusCreated, output)
+}
+
+// TestAPIAuth Function
+func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
+	var authDetails struct {
+		DeviceAccount string `json:"deviceAccount"`
+		APICall       string `json:"apiCall"`
+	}
+	var targetDevice model.DeviceAccount
+	var targetAPI model.API
+	var resp *http.Response
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&authDetails)
+
+	if jsonErr != nil {
+		fmt.Println(jsonErr)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid json request")
+	}
+
+	targetFilter := primitive.M{
+		"name": authDetails.DeviceAccount,
+	}
+
+	apiFilter := primitive.M{
+		"name": authDetails.APICall,
+	}
+
+	deviceResult, deviceDBErr := database.FindOne("accounts", "devices", targetFilter)
+
+	if deviceDBErr != nil {
+		fmt.Println(deviceDBErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no such device")
+		return
+	}
+
+	deviceDecodeErr := mapstructure.Decode(deviceResult, &targetDevice)
+
+	if deviceDecodeErr != nil {
+		fmt.Println(deviceDecodeErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error decoding device")
+	}
+
+	apiResult, apiDBErr := database.FindOne("apis", authDetails.DeviceAccount, apiFilter)
+
+	if apiDBErr != nil {
+		fmt.Println(apiDBErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no such api")
+		return
+	}
+
+	apiDecodeErr := mapstructure.Decode(apiResult, &targetAPI)
+
+	if apiDecodeErr != nil {
+		fmt.Println(apiDecodeErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error decoding api")
+	}
+
+	switch targetDevice.AuthType {
+	case "none":
+		resp = auth.NoAuth(targetDevice, targetAPI)
+	case "basic":
+		resp = auth.BasicAuth(targetDevice, targetAPI)
+	default:
+		fmt.Println("Invalid AuthType!")
+		return
+	}
+
+	defer resp.Body.Close()
+
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	bodyObject := make(map[string]interface{})
+
+	respErr := json.Unmarshal(respBody, &bodyObject)
+
+	if respErr != nil {
+		fmt.Println(respErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, bodyObject)
 }

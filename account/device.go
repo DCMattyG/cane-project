@@ -16,7 +16,13 @@ import (
 func AddDevice(w http.ResponseWriter, r *http.Request) {
 	var target model.DeviceAccount
 
-	json.NewDecoder(r.Body).Decode(&target)
+	jsonErr := json.NewDecoder(r.Body).Decode(&target)
+
+	if jsonErr != nil {
+		fmt.Println(jsonErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error decoding json")
+		return
+	}
 
 	filter := primitive.M{
 		"name": target.Name,
