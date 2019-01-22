@@ -35,7 +35,7 @@ func init() {
 // Routers Function
 func Routers() {
 	var iterVals []model.RouteValue
-	Router = chi.NewMux()
+	Router = chi.NewRouter()
 
 	filter := primitive.M{}
 	foundVals, _ := database.FindAll("routing", "routes", filter)
@@ -54,7 +54,7 @@ func Routers() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	})
 
-	// Router.Use(cors.Handler)
+	Router.Use(cors.Handler)
 
 	// Public Default Routes
 	Router.Post("/addRoute", AddRoutes)
@@ -67,7 +67,7 @@ func Routers() {
 	Router.Post("/addDevice", account.AddDevice)
 	Router.Get("/loadDevice/{name}", account.LoadDevice)
 	Router.Patch("/updateDevice/{name}", account.UpdateDevice)
-	// Router.Get("/listDevice", account.ListDevices)
+	Router.Get("/listDevice", account.ListDevices)
 	Router.Get("/deviceApis/{device}", account.ListDeviceAPIs)
 	Router.Post("/addApi", api.AddAPI)
 	Router.Get("/testPath/*", TestPath)
@@ -81,10 +81,10 @@ func Routers() {
 	Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
 
 	// Public Routes
-	Router.Group(func(r chi.Router) {
-		r.Use(cors.Handler)
-		r.Get("/listDevice", account.ListDevices)
-	})
+	// Router.Group(func(r chi.Router) {
+	// 	r.Use(cors.Handler)
+	// 	r.Get("/listDevice", account.ListDevices)
+	// })
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
