@@ -87,7 +87,7 @@ func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
 func ListWorkflows(w http.ResponseWriter, r *http.Request) {
 	var workflows []string
 
-	foundVal, foundErr := database.FindAll("workflow", "workflows", primitive.M{})
+	foundVal, foundErr := database.FindAll("workflows", "workflow", primitive.M{})
 
 	if foundErr != nil {
 		fmt.Println(foundErr)
