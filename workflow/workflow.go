@@ -23,12 +23,12 @@ type Workflow struct {
 
 // Step Struct
 type Step struct {
-	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	StepNum       int                `json:"stepNum" bson:"stepNum"`
-	APICall       string             `json:"apiCall" bson:"apiCall"`
-	DeviceAccount string             `json:"deviceAccount" bson:"deviceAccount"`
-	VarMap        map[string]string  `json:"varMap" bson:"varMap"`
-	Status        int                `json:"status" bson:"status"`
+	ID            primitive.ObjectID  `json:"id,omitempty" bson:"_id,omitempty"`
+	StepNum       int                 `json:"stepNum" bson:"stepNum"`
+	APICall       string              `json:"apiCall" bson:"apiCall"`
+	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount"`
+	VarMap        []map[string]string `json:"varMap" bson:"varMap"`
+	Status        int                 `json:"status" bson:"status"`
 }
 
 // AddWorkflow Function
