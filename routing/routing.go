@@ -8,6 +8,7 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
+	"cane-project/workflow"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -61,6 +62,8 @@ func Routers() {
 	Router.Post("/testXML", XMLTest)
 	Router.Post("/testGJSON", TestGJSON)
 	Router.Post("/testAPIAuth", TestAPIAuth)
+	Router.Post("/addWorkflow", workflow.AddWorkflow)
+	Router.Get("/listWorkflow", workflow.ListWorkflows)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {

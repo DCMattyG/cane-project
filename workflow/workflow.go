@@ -13,11 +13,12 @@ import (
 
 // Workflow Struct
 type Workflow struct {
-	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Name      string             `json:"name" bson:"name"`
-	Type      string             `json:"type" bson:"type"`
-	Steps     []Step             `json:"steps" bson:"steps"`
-	ClaimCode int                `json:"claimCode" bson:"claimCode"`
+	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Name        string             `json:"name" bson:"name"`
+	Description string             `json:"description" bson:"description"`
+	Type        string             `json:"type" bson:"type"`
+	Steps       []Step             `json:"steps" bson:"steps"`
+	ClaimCode   int                `json:"claimCode" bson:"claimCode"`
 }
 
 // Step Struct
@@ -34,7 +35,13 @@ type Step struct {
 func AddWorkflow(w http.ResponseWriter, r *http.Request) {
 	var target Workflow
 
-	json.NewDecoder(r.Body).Decode(&target)
+	jsonErr := json.NewDecoder(r.Body).Decode(&target)
+
+	if jsonErr != nil {
+		fmt.Println(jsonErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error decoding json")
+		return
+	}
 
 	filter := primitive.M{
 		"name": target.Name,
@@ -74,4 +81,28 @@ func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, foundVal)
+}
+
+// ListWorkflows Function
+func ListWorkflows(w http.ResponseWriter, r *http.Request) {
+	var workflows []string
+
+	foundVal, foundErr := database.FindAll("workflow", "workflows", primitive.M{})
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no workflows found")
+		return
+	}
+
+	if len(foundVal) == 0 {
+		util.RespondWithError(w, http.StatusBadRequest, "no workflows found")
+		return
+	}
+
+	for key := range foundVal {
+		workflows = append(workflows, foundVal[key]["name"].(string))
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"workflows": workflows})
 }
