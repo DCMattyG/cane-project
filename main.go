@@ -70,5 +70,7 @@ func main() {
 
 	fmt.Println("Listening on port", canePort)
 
-	http.ListenAndServe(canePort, logger())
+	httpErr := http.ListenAndServe(canePort, logger())
+
+	fmt.Println("ERROR: ", httpErr)
 }
