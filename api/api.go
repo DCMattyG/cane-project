@@ -22,6 +22,14 @@ func init() {
 		"xml",
 		"json",
 	}
+
+	cfg := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	http.DefaultClient.Transport = &http.Transport{
+		TLSClientConfig: cfg,
+	}
 }
 
 // AddAPI Function
@@ -74,13 +82,13 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 
 // CallAPI Function
 func CallAPI(req *http.Request, proxy string) *http.Response {
-	// transport := &http.Transport{}
-	// client := &http.Client{}
+	transport := &http.Transport{}
+	client := &http.Client{}
 
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: transport}
+	// transport := &http.Transport{
+	// 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	// }
+	// client := &http.Client{Transport: transport}
 
 	// Verify the proxyURL is properly formatted
 	proxyURL, err := url.Parse(proxy)
