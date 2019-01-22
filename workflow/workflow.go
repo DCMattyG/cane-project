@@ -47,7 +47,7 @@ func AddWorkflow(w http.ResponseWriter, r *http.Request) {
 		"name": target.Name,
 	}
 
-	_, findErr := database.FindOne("workflow", "workflows", filter)
+	_, findErr := database.FindOne("workflows", "workflow", filter)
 
 	if findErr == nil {
 		fmt.Println(findErr)
@@ -61,7 +61,7 @@ func AddWorkflow(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("Inserted ID: ")
 	fmt.Println(deviceID.(primitive.ObjectID).Hex())
 
-	foundVal, _ := database.FindOne("workflow", "workflows", filter)
+	foundVal, _ := database.FindOne("workflows", "workflow", filter)
 
 	util.RespondwithJSON(w, http.StatusCreated, foundVal)
 }
@@ -72,7 +72,7 @@ func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
 		"name": chi.URLParam(r, "name"),
 	}
 
-	foundVal, foundErr := database.FindOne("workflow", "workflows", filter)
+	foundVal, foundErr := database.FindOne("workflows", "workflow", filter)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)
