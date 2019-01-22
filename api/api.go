@@ -4,7 +4,6 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -77,7 +76,8 @@ func CallAPI(req *http.Request, proxy string) *http.Response {
 	transport := &http.Transport{}
 	client := &http.Client{}
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	// transport := http.DefaultTransport.(*http.Transport)
+	// client := &http.DefaultClient.(*http.Client)
 
 	// Verify the proxyURL is properly formatted
 	proxyURL, err := url.Parse(proxy)
@@ -85,11 +85,20 @@ func CallAPI(req *http.Request, proxy string) *http.Response {
 		fmt.Println("Invalid proxy URL format!")
 	}
 
+	// Ignore self-signed certificates
+	transport.TLSClientConfig.InsecureSkipVerify = true
+
+	client = &http.Client{
+		Transport: transport,
+	}
+
 	// Add proxy settings to the HTTP Transport object
 	if len(proxyURL.RawPath) > 0 {
-		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-		}
+		transport.Proxy = http.ProxyURL(proxyURL)
+
+		// transport = &http.Transport{
+		// 	Proxy: http.ProxyURL(proxyURL),
+		// }
 
 		client = &http.Client{
 			Transport: transport,
