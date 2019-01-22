@@ -4,6 +4,7 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -75,6 +76,8 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 func CallAPI(req *http.Request, proxy string) *http.Response {
 	transport := &http.Transport{}
 	client := &http.Client{}
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	// Verify the proxyURL is properly formatted
 	proxyURL, err := url.Parse(proxy)
