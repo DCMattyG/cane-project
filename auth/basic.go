@@ -2,7 +2,6 @@ package auth
 
 import (
 	"cane-project/model"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,8 +38,9 @@ func BasicAuth(account model.DeviceAccount, api model.API) *http.Response {
 
 	fmt.Println("REQ: ", req)
 
-	userPass := []byte(account.UserName + ":" + account.Password)
-	authKey := "Basic " + base64.StdEncoding.EncodeToString(userPass)
+	// userPass := []byte(account.UserName + ":" + account.Password)
+	// authKey := "Basic " + base64.StdEncoding.EncodeToString(userPass)
+	authKey := ""
 
 	// Append headers to HTTP request
 	req.Header.Add("Authorization", authKey)

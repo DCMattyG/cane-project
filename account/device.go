@@ -6,26 +6,73 @@ import (
 	"cane-project/util"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/go-chi/chi"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"github.com/tidwall/gjson"
 )
 
 // AddDevice Function
 func AddDevice(w http.ResponseWriter, r *http.Request) {
-	var target model.DeviceAccount
+	var device model.DeviceAccount
+	var authErr error
+	// var authSave map[string]interface{}
 
-	jsonErr := json.NewDecoder(r.Body).Decode(&target)
+	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
+	target := string(bodyBytes)
 
-	if jsonErr != nil {
-		fmt.Println(jsonErr)
-		util.RespondWithError(w, http.StatusBadRequest, "error decoding json")
+	// jsonErr := json.NewDecoder(r.Body).Decode(&target)
+
+	if bodyErr != nil {
+		fmt.Println(bodyErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error decoding body")
+		return
+	}
+
+	authType := gjson.Get(target, "device.authtype").String()
+	authInfo := gjson.Get(target, "auth").Value()
+	deviceInfo := gjson.Get(target, "device").Value()
+
+	switch authType {
+	case "none":
+		//No Auth
+	case "basic":
+		var basicAuth model.BasicAuth
+		authErr = mapstructure.Decode(authInfo, &basicAuth)
+	case "session":
+		var sessionAuth model.SessionAuth
+		authErr = mapstructure.Decode(authInfo, &sessionAuth)
+	case "apikey":
+		var apiKeyAuth model.APIKeyAuth
+		authErr = mapstructure.Decode(authInfo, &apiKeyAuth)
+	case "rfc3447":
+		var rfc3447Auth model.BasicAuth
+		authErr = mapstructure.Decode(authInfo, &rfc3447Auth)
+	default:
+		util.RespondWithError(w, http.StatusBadRequest, "invalid auth type")
+		return
+	}
+
+	if authErr != nil {
+		fmt.Println(authErr)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid auth details")
+		return
+	}
+
+	marshalErr := mapstructure.Decode(deviceInfo, &device)
+
+	if marshalErr != nil {
+		fmt.Println(marshalErr)
+		util.RespondWithError(w, http.StatusBadRequest, "invalid device details")
 		return
 	}
 
 	filter := primitive.M{
-		"name": target.Name,
+		"name": device.Name,
 	}
 
 	_, findErr := database.FindOne("accounts", "devices", filter)
@@ -36,10 +83,15 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deviceID, _ := database.Save("accounts", "devices", target)
-	target.ID = deviceID.(primitive.ObjectID)
+	authID, _ := database.Save("auth", authType, authInfo)
+	device.AuthObj = authID.(primitive.ObjectID)
 
-	fmt.Print("Inserted ID: ")
+	deviceID, _ := database.Save("accounts", "devices", device)
+	device.ID = deviceID.(primitive.ObjectID)
+
+	fmt.Print("Inserted Auth ID: ")
+	fmt.Println(authID.(primitive.ObjectID).Hex())
+	fmt.Print("Inserted Device ID: ")
 	fmt.Println(deviceID.(primitive.ObjectID).Hex())
 
 	foundVal, _ := database.FindOne("accounts", "devices", filter)

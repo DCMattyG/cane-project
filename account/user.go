@@ -64,7 +64,16 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	target.Token, _ = auth.GenerateJWT(target)
 
-	userID, _ := database.Save("accounts", "users", target)
+	userID, saveErr := database.Save("accounts", "users", target)
+
+	if saveErr != nil {
+		fmt.Println(saveErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error saving account")
+		return
+	}
+
+	userVal, _ := database.FindOne("accounts", "users", filter)
+	mapstructure.Decode(userVal, &target)
 
 	fmt.Print("Inserted ID: ")
 	fmt.Println(userID)
