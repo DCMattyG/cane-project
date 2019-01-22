@@ -89,7 +89,7 @@ func ListWorkflows(w http.ResponseWriter, r *http.Request) {
 
 	foundVal, foundErr := database.FindAll("workflow", "workflows", primitive.M{})
 
-	if foundErr != nil {
+	if foundErr == nil {
 		fmt.Println(foundErr)
 		util.RespondWithError(w, http.StatusBadRequest, "no workflows found")
 		return
