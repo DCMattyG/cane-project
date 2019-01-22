@@ -26,6 +26,10 @@ func catch(err error) {
 	}
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 // Logger return log message
 func logger() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +43,8 @@ func logger() http.Handler {
 
 		// fmt.Print("Inserted Log: ")
 		// fmt.Println(logID)
+
+		enableCors(&w)
 
 		fmt.Println(time.Now(), r.Method, r.URL)
 		routing.Router.ServeHTTP(w, r)
