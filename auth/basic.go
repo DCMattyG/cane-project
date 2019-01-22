@@ -1,16 +1,20 @@
 package auth
 
 import (
+	"cane-project/database"
 	"cane-project/model"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
 // BasicAuth Function
-func BasicAuth(account model.DeviceAccount, api model.API) *http.Response {
+func BasicAuth(account model.DeviceAccount, api model.API) (*http.Response, error) {
 	host, err := url.Parse(account.IP)
 	if err != nil {
 		panic("Cannot parse *host*!")
@@ -38,9 +42,22 @@ func BasicAuth(account model.DeviceAccount, api model.API) *http.Response {
 
 	fmt.Println("REQ: ", req)
 
-	// userPass := []byte(account.UserName + ":" + account.Password)
-	// authKey := "Basic " + base64.StdEncoding.EncodeToString(userPass)
-	authKey := ""
+	filter := primitive.M{
+		"_id": primitive.ObjectID(account.AuthObj),
+	}
+
+	foundVal, foundErr := database.FindOne("auth", account.AuthType, filter)
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		return nil, foundErr
+	}
+
+	userPass := []byte(foundVal["username"].(string) + ":" + foundVal["password"].(string))
+	authKey := "Basic " + base64.StdEncoding.EncodeToString(userPass)
+
+	fmt.Println("USERPASS: ", userPass)
+	fmt.Println("AUTHKEY: ", authKey)
 
 	// Append headers to HTTP request
 	req.Header.Add("Authorization", authKey)
@@ -52,7 +69,8 @@ func BasicAuth(account model.DeviceAccount, api model.API) *http.Response {
 	if err != nil {
 		log.Print(err)
 		fmt.Println("Errored when sending request to the server!")
+		return nil, err
 	}
 
-	return resp
+	return resp, nil
 }

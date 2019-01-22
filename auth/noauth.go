@@ -10,7 +10,7 @@ import (
 )
 
 // NoAuth Function
-func NoAuth(account model.DeviceAccount, api model.API) *http.Response {
+func NoAuth(account model.DeviceAccount, api model.API) (*http.Response, error) {
 	host, err := url.Parse(account.IP)
 	if err != nil {
 		panic("Cannot parse *host*!")
@@ -34,6 +34,7 @@ func NoAuth(account model.DeviceAccount, api model.API) *http.Response {
 	if err != nil {
 		log.Print(err)
 		fmt.Println("Errored when creating the HTTP request!")
+		return nil, err
 	}
 
 	fmt.Println("REQ: ", req)
@@ -45,7 +46,8 @@ func NoAuth(account model.DeviceAccount, api model.API) *http.Response {
 	if err != nil {
 		log.Print(err)
 		fmt.Println("Errored when sending request to the server!")
+		return nil, err
 	}
 
-	return resp
+	return resp, nil
 }

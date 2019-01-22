@@ -388,12 +388,14 @@ func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
 	var targetDevice model.DeviceAccount
 	var targetAPI model.API
 	var resp *http.Response
+	var respErr error
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&authDetails)
 
 	if jsonErr != nil {
 		fmt.Println(jsonErr)
 		util.RespondWithError(w, http.StatusBadRequest, "invalid json request")
+		return
 	}
 
 	targetFilter := primitive.M{
@@ -417,6 +419,7 @@ func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
 	if deviceDecodeErr != nil {
 		fmt.Println(deviceDecodeErr)
 		util.RespondWithError(w, http.StatusBadRequest, "error decoding device")
+		return
 	}
 
 	apiResult, apiDBErr := database.FindOne("apis", authDetails.DeviceAccount, apiFilter)
@@ -436,11 +439,19 @@ func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
 
 	switch targetDevice.AuthType {
 	case "none":
-		resp = auth.NoAuth(targetDevice, targetAPI)
+		resp, respErr = auth.NoAuth(targetDevice, targetAPI)
 	case "basic":
-		resp = auth.BasicAuth(targetDevice, targetAPI)
+		resp, respErr = auth.BasicAuth(targetDevice, targetAPI)
+	case "apikey":
+		resp, respErr = auth.APIKeyAuth(targetDevice, targetAPI)
 	default:
 		fmt.Println("Invalid AuthType!")
+		return
+	}
+
+	if respErr != nil {
+		fmt.Println(respErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
 		return
 	}
 
@@ -449,11 +460,12 @@ func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	bodyObject := make(map[string]interface{})
 
-	respErr := json.Unmarshal(respBody, &bodyObject)
+	marshalErr := json.Unmarshal(respBody, &bodyObject)
 
-	if respErr != nil {
-		fmt.Println(respErr)
+	if marshalErr != nil {
+		fmt.Println(marshalErr)
 		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+		return
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, bodyObject)

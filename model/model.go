@@ -8,26 +8,27 @@ import (
 
 // BasicAuth Type
 type BasicAuth struct {
-	userName string
-	password string
+	UserName string `json:"userName" bson:"userName" mapstructure:"userName"`
+	Password string `json:"password" bson:"password" mapstructure:"password"`
 }
 
 // SessionAuth Type
 type SessionAuth struct {
-	userName       string
-	password       string
-	cookieLifetime int32
+	UserName       string `json:"userName" bson:"userName" mapstructure:"userName"`
+	Password       string `json:"password" bson:"password" mapstructure:"password"`
+	CookieLifetime int32  `json:"cookieLifetime" bson:"cookieLifetime" mapstructure:"cookieLifetime"`
 }
 
 // APIKeyAuth Type
 type APIKeyAuth struct {
-	key string
+	Header string `json:"header" bson:"header" mapstructure:"header"`
+	Key    string `json:"key" bson:"key" mapstructure:"key"`
 }
 
 // Rfc3447Auth Type
 type Rfc3447Auth struct {
-	publicKey  string
-	privateKey *rsa.PrivateKey
+	PublicKey  string          `json:"publicKey" bson:"publicKey" mapstructure:"publicKey"`
+	PrivateKey *rsa.PrivateKey `json:"privateKey" bson:"privateKey" mapstructure:"privateKey"`
 }
 
 // API Struct
