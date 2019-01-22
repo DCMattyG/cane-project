@@ -4,7 +4,6 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,14 +20,6 @@ func init() {
 	APITypes = []string{
 		"xml",
 		"json",
-	}
-
-	cfg := &tls.Config{
-		InsecureSkipVerify: true,
-	}
-
-	http.DefaultClient.Transport = &http.Transport{
-		TLSClientConfig: cfg,
 	}
 }
 
@@ -99,9 +90,9 @@ func CallAPI(req *http.Request, proxy string) *http.Response {
 	// Ignore self-signed certificates
 	// transport.TLSClientConfig.InsecureSkipVerify = true
 
-	client = &http.Client{
-		Transport: transport,
-	}
+	// client = &http.Client{
+	// 	Transport: transport,
+	// }
 
 	// Add proxy settings to the HTTP Transport object
 	if len(proxyURL.RawPath) > 0 {

@@ -3,6 +3,7 @@ package auth
 import (
 	"cane-project/database"
 	"cane-project/model"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -61,7 +62,12 @@ func APIKeyAuth(account model.DeviceAccount, api model.API) (*http.Response, err
 	// Append headers to HTTP request
 	req.Header.Add(apiHeader, apiKey)
 
-	client := &http.Client{}
+	// client := &http.Client{}
+
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: transport}
 
 	resp, err := client.Do(req)
 
