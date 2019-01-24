@@ -1,4 +1,4 @@
-package auth
+package jwt
 
 import (
 	"cane-project/model"
@@ -16,13 +16,13 @@ var MySigningKey = []byte("secret")
 var TokenAuth *jwtauth.JWTAuth
 
 // AuthTypes Variable
-var AuthTypes = map[string]string{
-	"none":    "None",
-	"basic":   "Basic",
-	"session": "Session",
-	"apikey":  "APIKey",
-	"rfc3447": "Rfc3447",
-}
+// var AuthTypes = map[string]string{
+// 	"none":    "None",
+// 	"basic":   "Basic",
+// 	"session": "Session",
+// 	"apikey":  "APIKey",
+// 	"rfc3447": "Rfc3447",
+// }
 
 func init() {
 	TokenAuth = jwtauth.New("HS256", MySigningKey, nil)

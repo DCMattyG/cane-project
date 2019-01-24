@@ -39,7 +39,7 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 
 	switch authType {
 	case "none":
-		//No Auth
+		authInfo = primitive.M{}
 	case "basic":
 		var basicAuth model.BasicAuth
 		authErr = mapstructure.Decode(authInfo, &basicAuth)
@@ -86,11 +86,12 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 	authID, _ := database.Save("auth", authType, authInfo)
 	device.AuthObj = authID.(primitive.ObjectID)
 
+	fmt.Print("Inserted Auth ID: ")
+	fmt.Println(authID.(primitive.ObjectID).Hex())
+
 	deviceID, _ := database.Save("accounts", "devices", device)
 	device.ID = deviceID.(primitive.ObjectID)
 
-	fmt.Print("Inserted Auth ID: ")
-	fmt.Println(authID.(primitive.ObjectID).Hex())
 	fmt.Print("Inserted Device ID: ")
 	fmt.Println(deviceID.(primitive.ObjectID).Hex())
 
@@ -101,11 +102,9 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 
 // LoadDevice Function
 func LoadDevice(w http.ResponseWriter, r *http.Request) {
-	filter := primitive.M{
-		"name": chi.URLParam(r, "name"),
-	}
+	deviceName := chi.URLParam(r, "name")
 
-	foundVal, foundErr := database.FindOne("accounts", "devices", filter)
+	foundVal, foundErr := GetDeviceFromDB(deviceName)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)
@@ -114,6 +113,31 @@ func LoadDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, foundVal)
+}
+
+// GetDeviceFromDB Function
+func GetDeviceFromDB(deviceName string) (model.DeviceAccount, error) {
+	var device model.DeviceAccount
+
+	filter := primitive.M{
+		"name": deviceName,
+	}
+
+	foundVal, foundErr := database.FindOne("accounts", "devices", filter)
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		return device, foundErr
+	}
+
+	mapErr := mapstructure.Decode(foundVal, &device)
+
+	if mapErr != nil {
+		fmt.Println(mapErr)
+		return device, mapErr
+	}
+
+	return device, nil
 }
 
 // UpdateDevice Function

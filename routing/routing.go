@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"cane-project/account"
 	"cane-project/api"
-	"cane-project/auth"
 	"cane-project/database"
+	"cane-project/jwt"
 	"cane-project/model"
 	"cane-project/util"
 	"cane-project/workflow"
@@ -74,16 +74,17 @@ func Routers() {
 	Router.Post("/testJSON", JSONTest)
 	Router.Post("/testXML", XMLTest)
 	Router.Post("/testGJSON", TestGJSON)
-	Router.Post("/testAPIAuth", TestAPIAuth)
+	// Router.Post("/testAPIAuth", TestAPIAuth)
 	// Router.Post("/addWorkflow", workflow.AddWorkflow)
 	// Router.Get("/listWorkflow", workflow.ListWorkflows)
 	// Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
-	Router.Get("/callWorkflow/{name}", workflow.ExecuteWorkflow)
+	Router.Post("/callWorkflow/{name}", workflow.ExecuteWorkflow)
+	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
 		r.Use(cors.Handler)
-		r.Use(jwtauth.Verifier(auth.TokenAuth))
+		r.Use(jwtauth.Verifier(jwt.TokenAuth))
 		r.Use(jwtauth.Authenticator)
 		r.Post("/addRoute", AddRoutes)
 		r.Post("/parseVars", ParseVars)
@@ -388,93 +389,44 @@ func TestGJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 // TestAPIAuth Function
-func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
-	var authDetails struct {
-		DeviceAccount string `json:"deviceAccount"`
-		APICall       string `json:"apiCall"`
-	}
-	var targetDevice model.DeviceAccount
-	var targetAPI model.API
-	var resp *http.Response
-	var respErr error
+// func TestAPIAuth(w http.ResponseWriter, r *http.Request) {
+// 	var authDetails struct {
+// 		DeviceAccount string `json:"deviceAccount"`
+// 		APICall       string `json:"apiCall"`
+// 	}
 
-	jsonErr := json.NewDecoder(r.Body).Decode(&authDetails)
+// 	jsonErr := json.NewDecoder(r.Body).Decode(&authDetails)
 
-	if jsonErr != nil {
-		fmt.Println(jsonErr)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid json request")
-		return
-	}
+// 	if jsonErr != nil {
+// 		fmt.Println(jsonErr)
+// 		util.RespondWithError(w, http.StatusBadRequest, "invalid json request")
+// 		return
+// 	}
 
-	targetFilter := primitive.M{
-		"name": authDetails.DeviceAccount,
-	}
+// 	deviceAccount := authDetails.DeviceAccount
 
-	apiFilter := primitive.M{
-		"name": authDetails.APICall,
-	}
+// 	apiCall := authDetails.APICall
 
-	deviceResult, deviceDBErr := database.FindOne("accounts", "devices", targetFilter)
+// 	resp, respErr := api.CallAPI(deviceAccount, apiCall)
 
-	if deviceDBErr != nil {
-		fmt.Println(deviceDBErr)
-		util.RespondWithError(w, http.StatusBadRequest, "no such device")
-		return
-	}
+// 	if respErr != nil {
+// 		fmt.Println(respErr)
+// 		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+// 		return
+// 	}
 
-	deviceDecodeErr := mapstructure.Decode(deviceResult, &targetDevice)
+// 	defer resp.Body.Close()
 
-	if deviceDecodeErr != nil {
-		fmt.Println(deviceDecodeErr)
-		util.RespondWithError(w, http.StatusBadRequest, "error decoding device")
-		return
-	}
+// 	respBody, _ := ioutil.ReadAll(resp.Body)
+// 	bodyObject := make(map[string]interface{})
 
-	apiResult, apiDBErr := database.FindOne("apis", authDetails.DeviceAccount, apiFilter)
+// 	marshalErr := json.Unmarshal(respBody, &bodyObject)
 
-	if apiDBErr != nil {
-		fmt.Println(apiDBErr)
-		util.RespondWithError(w, http.StatusBadRequest, "no such api")
-		return
-	}
+// 	if marshalErr != nil {
+// 		fmt.Println(marshalErr)
+// 		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+// 		return
+// 	}
 
-	apiDecodeErr := mapstructure.Decode(apiResult, &targetAPI)
-
-	if apiDecodeErr != nil {
-		fmt.Println(apiDecodeErr)
-		util.RespondWithError(w, http.StatusBadRequest, "error decoding api")
-	}
-
-	switch targetDevice.AuthType {
-	case "none":
-		resp, respErr = auth.NoAuth(targetDevice, targetAPI)
-	case "basic":
-		resp, respErr = auth.BasicAuth(targetDevice, targetAPI)
-	case "apikey":
-		resp, respErr = auth.APIKeyAuth(targetDevice, targetAPI)
-	default:
-		fmt.Println("Invalid AuthType!")
-		return
-	}
-
-	if respErr != nil {
-		fmt.Println(respErr)
-		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
-		return
-	}
-
-	defer resp.Body.Close()
-
-	respBody, _ := ioutil.ReadAll(resp.Body)
-	bodyObject := make(map[string]interface{})
-
-	marshalErr := json.Unmarshal(respBody, &bodyObject)
-
-	if marshalErr != nil {
-		fmt.Println(marshalErr)
-		util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
-		return
-	}
-
-	util.RespondwithJSON(w, http.StatusOK, bodyObject)
-}
+// 	util.RespondwithJSON(w, http.StatusOK, bodyObject)
+// }

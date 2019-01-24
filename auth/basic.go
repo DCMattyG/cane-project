@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"cane-project/account"
 	"cane-project/database"
 	"cane-project/model"
 	"encoding/base64"
@@ -14,23 +15,23 @@ import (
 )
 
 // BasicAuth Function
-func BasicAuth(account model.DeviceAccount, api model.API) (*http.Response, error) {
-	host, err := url.Parse(account.IP)
+func BasicAuth(api model.API) (*http.Request, error) {
+	device, deviceErr := account.GetDeviceFromDB(api.DeviceAccount)
+
+	if deviceErr != nil {
+		log.Print(deviceErr)
+		fmt.Println("Errored when creating the HTTP request!")
+		return nil, deviceErr
+	}
+
+	host, err := url.Parse(device.IP)
 	if err != nil {
 		panic("Cannot parse *host*!")
 	}
 
-	fmt.Println("SCHEME: ", host.Scheme)
-	fmt.Println("HOSTNAME: ", host.Hostname())
-	fmt.Println("ENDPOINT: ", api.URL)
-
 	targetMethod := strings.ToUpper(api.Method)
 
-	fmt.Println("METHOD: ", targetMethod)
-
 	targetURL := host.Scheme + "://" + host.Hostname() + api.URL
-
-	fmt.Println("TARGETURL: ", targetURL)
 
 	// Create HTTP request
 	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(""))
@@ -40,13 +41,11 @@ func BasicAuth(account model.DeviceAccount, api model.API) (*http.Response, erro
 		fmt.Println("Errored when creating the HTTP request!")
 	}
 
-	fmt.Println("REQ: ", req)
-
 	filter := primitive.M{
-		"_id": primitive.ObjectID(account.AuthObj),
+		"_id": primitive.ObjectID(device.AuthObj),
 	}
 
-	foundVal, foundErr := database.FindOne("auth", account.AuthType, filter)
+	foundVal, foundErr := database.FindOne("auth", device.AuthType, filter)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)
@@ -56,21 +55,8 @@ func BasicAuth(account model.DeviceAccount, api model.API) (*http.Response, erro
 	userPass := []byte(foundVal["username"].(string) + ":" + foundVal["password"].(string))
 	authKey := "Basic " + base64.StdEncoding.EncodeToString(userPass)
 
-	fmt.Println("USERPASS: ", userPass)
-	fmt.Println("AUTHKEY: ", authKey)
-
 	// Append headers to HTTP request
 	req.Header.Add("Authorization", authKey)
 
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-
-	if err != nil {
-		log.Print(err)
-		fmt.Println("Errored when sending request to the server!")
-		return nil, err
-	}
-
-	return resp, nil
+	return req, nil
 }

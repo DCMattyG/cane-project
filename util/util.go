@@ -13,6 +13,12 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
+// ProxyURL Variable
+var ProxyURL string
+
+// IgnoreSSL Global Setting
+var IgnoreSSL bool
+
 // XMLNode Struct
 type XMLNode struct {
 	XMLName xml.Name
@@ -24,6 +30,10 @@ type XMLNode struct {
 // JSONNode Struct
 type JSONNode struct {
 	Node map[string]interface{}
+}
+
+func init() {
+	IgnoreSSL = true
 }
 
 // EncodeBase64 Function

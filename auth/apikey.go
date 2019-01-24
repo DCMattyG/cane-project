@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"cane-project/account"
 	"cane-project/database"
 	"cane-project/model"
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,8 +14,16 @@ import (
 )
 
 // APIKeyAuth Function
-func APIKeyAuth(account model.DeviceAccount, api model.API) (*http.Response, error) {
-	host, err := url.Parse(account.IP)
+func APIKeyAuth(api model.API) (*http.Request, error) {
+	device, deviceErr := account.GetDeviceFromDB(api.DeviceAccount)
+
+	if deviceErr != nil {
+		log.Print(deviceErr)
+		fmt.Println("Errored when creating the HTTP request!")
+		return nil, deviceErr
+	}
+
+	host, err := url.Parse(device.IP)
 	if err != nil {
 		panic("Cannot parse *host*!")
 	}
@@ -43,10 +51,10 @@ func APIKeyAuth(account model.DeviceAccount, api model.API) (*http.Response, err
 	fmt.Println("REQ: ", req)
 
 	filter := primitive.M{
-		"_id": primitive.ObjectID(account.AuthObj),
+		"_id": primitive.ObjectID(device.AuthObj),
 	}
 
-	foundVal, foundErr := database.FindOne("auth", account.AuthType, filter)
+	foundVal, foundErr := database.FindOne("auth", device.AuthType, filter)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)
@@ -62,20 +70,5 @@ func APIKeyAuth(account model.DeviceAccount, api model.API) (*http.Response, err
 	// Append headers to HTTP request
 	req.Header.Add(apiHeader, apiKey)
 
-	// client := &http.Client{}
-
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: transport}
-
-	resp, err := client.Do(req)
-
-	if err != nil {
-		log.Print(err)
-		fmt.Println("Errored when sending request to the server!")
-		return nil, err
-	}
-
-	return resp, nil
+	return req, nil
 }

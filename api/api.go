@@ -1,15 +1,18 @@
 package api
 
 import (
+	"cane-project/auth"
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 
+	"github.com/go-chi/chi"
+	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
@@ -71,49 +74,152 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 	util.RespondwithJSON(w, http.StatusCreated, foundVal)
 }
 
+// LoadAPI Function
+func LoadAPI(w http.ResponseWriter, r *http.Request) {
+	apiAccount := chi.URLParam(r, "account")
+	apiName := chi.URLParam(r, "name")
+
+	getAPI, getErr := GetAPIFromDB(apiAccount, apiName)
+
+	if getErr != nil {
+		fmt.Println(getErr)
+		util.RespondWithError(w, http.StatusBadRequest, "api not found")
+		return
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, getAPI)
+}
+
+// GetAPIFromDB Function
+func GetAPIFromDB(apiAccount string, apiName string) (model.API, error) {
+	var api model.API
+
+	filter := primitive.M{
+		"name": apiName,
+	}
+
+	foundVal, foundErr := database.FindOne("apis", apiAccount, filter)
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		return api, foundErr
+	}
+
+	mapErr := mapstructure.Decode(foundVal, &api)
+
+	if mapErr != nil {
+		fmt.Println(mapErr)
+		return api, mapErr
+	}
+
+	return api, nil
+}
+
 // CallAPI Function
-func CallAPI(req *http.Request, proxy string) *http.Response {
+func CallAPI(targetAPI model.API) (*http.Response, error) {
 	transport := &http.Transport{}
 	client := &http.Client{}
 
-	// transport := &http.Transport{
-	// 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	// }
-	// client := &http.Client{Transport: transport}
+	var targetDevice model.DeviceAccount
+	// var targetAPI model.API
+	var req *http.Request
+	var reqErr error
 
-	// Verify the proxyURL is properly formatted
-	proxyURL, err := url.Parse(proxy)
+	proxyURL, err := url.Parse(util.ProxyURL)
 	if err != nil {
 		fmt.Println("Invalid proxy URL format!")
 	}
 
-	// Ignore self-signed certificates
-	// transport.TLSClientConfig.InsecureSkipVerify = true
-
-	// client = &http.Client{
-	// 	Transport: transport,
-	// }
-
 	// Add proxy settings to the HTTP Transport object
 	if len(proxyURL.RawPath) > 0 {
 		transport.Proxy = http.ProxyURL(proxyURL)
-
-		// transport = &http.Transport{
-		// 	Proxy: http.ProxyURL(proxyURL),
-		// }
-
-		client = &http.Client{
-			Transport: transport,
-		}
 	}
 
-	resp, err := client.Do(req)
+	if util.IgnoreSSL {
+		transport.TLSClientConfig.InsecureSkipVerify = true
+	}
 
-	if err != nil {
-		log.Print(err)
+	client = &http.Client{Transport: transport}
+
+	//------------------------------------------------------------------//
+	deviceFilter := primitive.M{
+		"name": targetAPI.DeviceAccount,
+	}
+
+	// apiFilter := primitive.M{
+	// 	"name": apiCall,
+	// }
+
+	deviceResult, deviceDBErr := database.FindOne("accounts", "devices", deviceFilter)
+
+	if deviceDBErr != nil {
+		fmt.Println(deviceDBErr)
+		return nil, deviceDBErr
+	}
+
+	deviceDecodeErr := mapstructure.Decode(deviceResult, &targetDevice)
+
+	if deviceDecodeErr != nil {
+		fmt.Println(deviceDecodeErr)
+		return nil, deviceDecodeErr
+	}
+
+	// apiResult, apiDBErr := database.FindOne("apis", deviceAccount, apiFilter)
+
+	// if apiDBErr != nil {
+	// 	fmt.Println(apiDBErr)
+	// 	return nil, apiDBErr
+	// }
+
+	// apiDecodeErr := mapstructure.Decode(apiResult, &targetAPI)
+
+	// if apiDecodeErr != nil {
+	// 	fmt.Println(apiDecodeErr)
+	// 	return nil, apiDecodeErr
+	// }
+
+	switch targetDevice.AuthType {
+	case "none":
+		req, reqErr = auth.NoAuth(targetAPI)
+	case "basic":
+		req, reqErr = auth.BasicAuth(targetAPI)
+	case "apikey":
+		req, reqErr = auth.APIKeyAuth(targetAPI)
+	default:
+		fmt.Println("Invalid AuthType!")
+		return nil, errors.New("Invalid AuthType")
+	}
+
+	if reqErr != nil {
+		fmt.Println(reqErr)
+		return nil, reqErr
+	}
+	//------------------------------------------------------------------//
+
+	resp, respErr := client.Do(req)
+
+	if respErr != nil {
 		fmt.Println("Errored when sending request to the server!")
-		return nil
+		return nil, respErr
 	}
 
-	return resp
+	// Extract Body String from Response
+	//------------------------------------------------------------------//
+	// defer resp.Body.Close()
+
+	// respBody, _ := ioutil.ReadAll(resp.Body)
+	// bodyObject := make(map[string]interface{})
+
+	// marshalErr := json.Unmarshal(respBody, &bodyObject)
+
+	// if marshalErr != nil {
+	// 	fmt.Println(marshalErr)
+	// 	util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+	// 	return
+	// }
+
+	// util.RespondwithJSON(w, http.StatusOK, bodyObject)
+	//------------------------------------------------------------------//
+
+	return resp, nil
 }

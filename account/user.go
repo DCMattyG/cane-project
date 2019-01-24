@@ -1,8 +1,8 @@
 package account
 
 import (
-	"cane-project/auth"
 	"cane-project/database"
+	"cane-project/jwt"
 	"cane-project/model"
 	"cane-project/util"
 	"encoding/json"
@@ -62,7 +62,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	target.Token, _ = auth.GenerateJWT(target)
+	target.Token, _ = jwt.GenerateJWT(target)
 
 	userID, saveErr := database.Save("accounts", "users", target)
 
@@ -101,7 +101,7 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 
 	mapstructure.Decode(foundVal, &account)
 
-	auth.ValidateJWT(account.Token)
+	jwt.ValidateJWT(account.Token)
 }
 
 // ChangePassword Function
@@ -149,7 +149,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	mapstructure.Decode(findVal, &account)
 
-	newToken, _ := auth.GenerateJWT(account)
+	newToken, _ := jwt.GenerateJWT(account)
 
 	update := primitive.M{
 		"$set": primitive.M{
