@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"github.com/rs/xid"
 )
 
 // BasicAuth Type
@@ -14,9 +15,11 @@ type BasicAuth struct {
 
 // SessionAuth Type
 type SessionAuth struct {
-	UserName       string `json:"userName" bson:"userName" mapstructure:"userName"`
-	Password       string `json:"password" bson:"password" mapstructure:"password"`
-	CookieLifetime int32  `json:"cookieLifetime" bson:"cookieLifetime" mapstructure:"cookieLifetime"`
+	UserName       string              `json:"userName" bson:"userName" mapstructure:"userName"`
+	Password       string              `json:"password" bson:"password" mapstructure:"password"`
+	AuthBody       string              `json:"authBody" bson:"authBody" mapstructure:"authBody"`
+	AuthBodyMap    []map[string]string `json:"authBodyMap" bson:"authBodyMap" mapstructure:"authBodyMap"`
+	CookieLifetime int32               `json:"cookieLifetime" bson:"cookieLifetime" mapstructure:"cookieLifetime"`
 }
 
 // APIKeyAuth Type
@@ -83,6 +86,13 @@ type Workflow struct {
 	Steps       []Step             `json:"steps" bson:"steps" mapstructure:"steps"`
 	ClaimCode   int                `json:"claimCode" bson:"claimCode" mapstructure:"claimCode"`
 	// Note, add OutputMap []map[string]string
+}
+
+// WorkflowClaim Struct
+type WorkflowClaim struct {
+	ID              primitive.ObjectID     `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id"`
+	WorkflowResults map[string]*StepResult `json:"workflowResults" bson:"workflowResults" mapstructure:"workflowResults"`
+	ClaimCode       xid.ID                 `json:"claimCode" bson:"claimCode" mapstructure:"claimCode"`
 }
 
 // Step Struct
