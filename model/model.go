@@ -104,8 +104,3 @@ type StepResult struct {
 	Error      error  `json:"error" bson:"error" mapstructure:"error"`
 	Status     int    `json:"status" bson:"status" mapstructure:"status"`
 }
-
-// StepResults Struct
-type StepResults struct {
-	Results map[string]StepResult `json:"results" bson:"results" mapstructure:"results"`
-}
