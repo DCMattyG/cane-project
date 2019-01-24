@@ -6,10 +6,12 @@ import (
 	"cane-project/model"
 	"cane-project/util"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/tidwall/sjson"
@@ -21,29 +23,9 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
-// Workflow Struct
-type Workflow struct {
-	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Name        string             `json:"name" bson:"name"`
-	Description string             `json:"description" bson:"description"`
-	Type        string             `json:"type" bson:"type"`
-	Steps       []Step             `json:"steps" bson:"steps"`
-	ClaimCode   int                `json:"claimCode" bson:"claimCode"`
-}
-
-// Step Struct
-type Step struct {
-	ID            primitive.ObjectID  `json:"id,omitempty" bson:"_id,omitempty"`
-	StepNum       int                 `json:"stepNum" bson:"stepNum"`
-	APICall       string              `json:"apiCall" bson:"apiCall"`
-	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount"`
-	VarMap        []map[string]string `json:"varMap" bson:"varMap"`
-	Status        int                 `json:"status" bson:"status"`
-}
-
 // AddWorkflow Function
 func AddWorkflow(w http.ResponseWriter, r *http.Request) {
-	var target Workflow
+	var target model.Workflow
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&target)
 
@@ -120,16 +102,16 @@ func ListWorkflows(w http.ResponseWriter, r *http.Request) {
 
 // ExecuteWorkflow Function
 func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
-	var targetWorkflow Workflow
+	var targetWorkflow model.Workflow
+	var setData gjson.Result
 	var stepAPI model.API
-	// var stepDevice model.DeviceAccount
 	var stepAPIErr error
-	// var stepDeviceErr error
 
-	apiResults := map[string]interface{}{}
+	// apiResults := make(map[string]interface{})
+	apiResults := make(map[string]*model.StepResult)
 
 	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
-	bodyString := string(bodyBytes)
+	stepZero := string(bodyBytes)
 
 	if bodyErr != nil {
 		fmt.Println(bodyErr)
@@ -157,8 +139,28 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("Initializing Step Results...")
+
+	for i := 0; i < len(targetWorkflow.Steps); i++ {
+		var step model.StepResult
+
+		step.APICall = targetWorkflow.Steps[i].APICall
+		step.APIAccount = targetWorkflow.Steps[i].DeviceAccount
+		step.Status = 0
+
+		apiResults[strconv.Itoa(i+1)] = &step
+	}
+
+	fmt.Println("Beginning Step Loop...")
+
 	// For each step in "STEPS"
 	for i := 0; i < len(targetWorkflow.Steps); i++ {
+		fmt.Println("Setting API Status to 1...")
+
+		apiResults[strconv.Itoa(i+1)].Status = 1
+
+		fmt.Println("Loading Step API...")
+
 		stepAPI, stepAPIErr = api.GetAPIFromDB(targetWorkflow.Steps[i].DeviceAccount, targetWorkflow.Steps[i].APICall)
 
 		if stepAPIErr != nil {
@@ -167,13 +169,10 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// stepDevice, stepDeviceErr = account.GetDeviceFromDB(targetWorkflow.Steps[i].DeviceAccount)
+		apiResults[strconv.Itoa(i+1)].APICall = stepAPI.Name
+		apiResults[strconv.Itoa(i+1)].APIAccount = stepAPI.DeviceAccount
 
-		// if stepDeviceErr != nil {
-		// 	fmt.Println(stepDeviceErr)
-		// 	util.RespondWithError(w, http.StatusBadRequest, "error loading target device")
-		// 	return
-		// }
+		fmt.Println("Beginning VarMap Loop...")
 
 		// For each Variable Map in "VARMAP"
 		for j := 0; j < len(targetWorkflow.Steps[i].VarMap); j++ {
@@ -184,51 +183,89 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 				stepFrom := key[(left + 1):right]
 				fromMap := key[(right + 1):]
 
-				setData := gjson.Get(bodyString, fromMap)
-
 				fmt.Println("From Step: ", stepFrom)
+				fmt.Println("From Map: ", fromMap)
+				fmt.Println("APIResults:")
+				fmt.Println(apiResults)
+
+				if stepFrom == "0" {
+					setData = gjson.Get(stepZero, fromMap)
+				} else {
+					fmt.Println("Res Body: ", &apiResults[stepFrom].ResBody)
+					setData = gjson.Get(apiResults[stepFrom].ResBody, fromMap)
+				}
 
 				var typedData interface{}
 
-				switch dataKind := reflect.TypeOf(gjson.Get(stepAPI.Body, val).Value()).Kind(); dataKind {
-				case reflect.Int:
-					// fmt.Println("Value: ", val)
-					// fmt.Println("Kind: ", dataKind)
-					typedData = setData.Int()
-				case reflect.Float64:
-					// fmt.Println("Value: ", val)
-					// fmt.Println("Kind: ", dataKind)
-					typedData = setData.Float()
-				case reflect.String:
-					// fmt.Println("Value: ", val)
-					// fmt.Println("Kind: ", dataKind)
-					typedData = setData.String()
-				default:
-					fmt.Println("Value: ", val)
-					fmt.Println("Unidentified Kind: ", dataKind)
-				}
+				fmt.Println("Determining TypeData...")
+				fmt.Println("GJSON Results: ", gjson.Get(stepAPI.Body, val))
 
-				stepAPI.Body, _ = sjson.Set(stepAPI.Body, val, typedData)
-				fmt.Println("Updated Body: ", stepAPI.Body)
-
-				apiResp, _ := api.CallAPI(stepAPI)
-				fmt.Println("API Response:")
-				fmt.Println(apiResp)
-
-				defer apiResp.Body.Close()
-
-				respBody, _ := ioutil.ReadAll(apiResp.Body)
-				// bodyObject := make(map[string]interface{})
-
-				marshalErr := json.Unmarshal(respBody, &apiResults)
-
-				if marshalErr != nil {
-					fmt.Println(marshalErr)
-					util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+				if gjson.Get(stepAPI.Body, val).Exists() {
+					switch dataKind := reflect.TypeOf(gjson.Get(stepAPI.Body, val).Value()).Kind(); dataKind {
+					case reflect.Int:
+						fmt.Println("Value: ", val)
+						fmt.Println("Kind: ", dataKind)
+						typedData = setData.Int()
+					case reflect.Float64:
+						fmt.Println("Value: ", val)
+						fmt.Println("Kind: ", dataKind)
+						typedData = setData.Float()
+					case reflect.String:
+						fmt.Println("Value: ", val)
+						fmt.Println("Kind: ", dataKind)
+						typedData = setData.String()
+					default:
+						fmt.Println("Value: ", val)
+						fmt.Println("Unidentified Kind: ", dataKind)
+					}
+				} else {
+					util.RespondWithError(w, http.StatusBadRequest, "Invalid mapping data")
+					apiResults[strconv.Itoa(i+1)].Error = errors.New("Invalid mapping data")
+					apiResults[strconv.Itoa(i+1)].Status = -1
 					return
 				}
+
+				fmt.Println("Setting StepAPI Body...")
+
+				stepAPI.Body, _ = sjson.Set(stepAPI.Body, val, typedData)
 			}
 		}
+
+		fmt.Println("Updated Body: ", stepAPI.Body)
+		apiResults[strconv.Itoa(i+1)].ReqBody = stepAPI.Body
+
+		apiResp, apiErr := api.CallAPI(stepAPI)
+
+		if apiErr != nil {
+			fmt.Println(apiErr)
+			util.RespondWithError(w, http.StatusBadRequest, "error executing API")
+			apiResults[strconv.Itoa(i+1)].Error = apiErr
+			apiResults[strconv.Itoa(i+1)].Status = -1
+			return
+		}
+
+		fmt.Println("API Response:")
+		fmt.Println(apiResp)
+
+		defer apiResp.Body.Close()
+
+		respBody, _ := ioutil.ReadAll(apiResp.Body)
+
+		fmt.Println("API Response Body:")
+		fmt.Println(string(respBody))
+
+		apiResults[strconv.Itoa(i+1)].ResBody = string(respBody)
+
+		bodyObject := make(map[string]interface{})
+		marshalErr := json.Unmarshal(respBody, &bodyObject)
+
+		if marshalErr != nil {
+			fmt.Println(marshalErr)
+			util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+			return
+		}
+
+		apiResults[strconv.Itoa(i+1)].Status = 2
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, apiResults)

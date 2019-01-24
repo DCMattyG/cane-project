@@ -5,6 +5,7 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -121,7 +122,6 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	client := &http.Client{}
 
 	var targetDevice model.DeviceAccount
-	// var targetAPI model.API
 	var req *http.Request
 	var reqErr error
 
@@ -130,30 +130,28 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		fmt.Println("Invalid proxy URL format!")
 	}
 
+	if util.IgnoreSSL {
+		transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
 	// Add proxy settings to the HTTP Transport object
 	if len(proxyURL.RawPath) > 0 {
 		transport.Proxy = http.ProxyURL(proxyURL)
 	}
 
-	if util.IgnoreSSL {
-		transport.TLSClientConfig.InsecureSkipVerify = true
-	}
-
 	client = &http.Client{Transport: transport}
 
-	//------------------------------------------------------------------//
 	deviceFilter := primitive.M{
 		"name": targetAPI.DeviceAccount,
 	}
-
-	// apiFilter := primitive.M{
-	// 	"name": apiCall,
-	// }
 
 	deviceResult, deviceDBErr := database.FindOne("accounts", "devices", deviceFilter)
 
 	if deviceDBErr != nil {
 		fmt.Println(deviceDBErr)
+		fmt.Println("Error loading device for CallAPI")
 		return nil, deviceDBErr
 	}
 
@@ -161,22 +159,9 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 
 	if deviceDecodeErr != nil {
 		fmt.Println(deviceDecodeErr)
+		fmt.Println("Error decoding device for CallAPI")
 		return nil, deviceDecodeErr
 	}
-
-	// apiResult, apiDBErr := database.FindOne("apis", deviceAccount, apiFilter)
-
-	// if apiDBErr != nil {
-	// 	fmt.Println(apiDBErr)
-	// 	return nil, apiDBErr
-	// }
-
-	// apiDecodeErr := mapstructure.Decode(apiResult, &targetAPI)
-
-	// if apiDecodeErr != nil {
-	// 	fmt.Println(apiDecodeErr)
-	// 	return nil, apiDecodeErr
-	// }
 
 	switch targetDevice.AuthType {
 	case "none":
@@ -192,9 +177,9 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 
 	if reqErr != nil {
 		fmt.Println(reqErr)
+		fmt.Println("Error getting request for CallAPI")
 		return nil, reqErr
 	}
-	//------------------------------------------------------------------//
 
 	resp, respErr := client.Do(req)
 
@@ -202,24 +187,6 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		fmt.Println("Errored when sending request to the server!")
 		return nil, respErr
 	}
-
-	// Extract Body String from Response
-	//------------------------------------------------------------------//
-	// defer resp.Body.Close()
-
-	// respBody, _ := ioutil.ReadAll(resp.Body)
-	// bodyObject := make(map[string]interface{})
-
-	// marshalErr := json.Unmarshal(respBody, &bodyObject)
-
-	// if marshalErr != nil {
-	// 	fmt.Println(marshalErr)
-	// 	util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
-	// 	return
-	// }
-
-	// util.RespondwithJSON(w, http.StatusOK, bodyObject)
-	//------------------------------------------------------------------//
 
 	return resp, nil
 }

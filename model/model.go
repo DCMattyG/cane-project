@@ -73,3 +73,39 @@ type RouteValue struct {
 	Route    string             `json:"route" bson:"route" mapstructure:"route"`
 	Message  map[string]string  `json:"message" bson:"message" mapstructure:"message"`
 }
+
+// Workflow Struct
+type Workflow struct {
+	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id"`
+	Name        string             `json:"name" bson:"name" mapstructure:"name"`
+	Description string             `json:"description" bson:"description" mapstructure:"description"`
+	Type        string             `json:"type" bson:"type" mapstructure:"type"`
+	Steps       []Step             `json:"steps" bson:"steps" mapstructure:"steps"`
+	ClaimCode   int                `json:"claimCode" bson:"claimCode" mapstructure:"claimCode"`
+	// Note, add OutputMap []map[string]string
+}
+
+// Step Struct
+type Step struct {
+	ID            primitive.ObjectID  `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id"`
+	StepNum       int                 `json:"stepNum" bson:"stepNum" mapstructure:"stepNum"`
+	APICall       string              `json:"apiCall" bson:"apiCall" mapstructure:"apiCall"`
+	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount"`
+	VarMap        []map[string]string `json:"varMap" bson:"varMap" mapstructure:"varMap"`
+	Status        int                 `json:"status" bson:"status" mapstructure:"status"`
+}
+
+// StepResult Struct
+type StepResult struct {
+	APICall    string `json:"apiCall" bson:"apiCall" mapstructure:"apiCall"`
+	APIAccount string `json:"apiAccount" bson:"apiAccount" mapstructure:"apiAccount"`
+	ReqBody    string `json:"reqBody" bson:"reqBody" mapstructure:"reqBody"`
+	ResBody    string `json:"resBody" bson:"resBody" mapstructure:"resBody"`
+	Error      error  `json:"error" bson:"error" mapstructure:"error"`
+	Status     int    `json:"status" bson:"status" mapstructure:"status"`
+}
+
+// StepResults Struct
+type StepResults struct {
+	Results map[string]StepResult `json:"results" bson:"results" mapstructure:"results"`
+}
