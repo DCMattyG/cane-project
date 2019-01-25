@@ -78,7 +78,7 @@ func Routers() {
 	// Router.Post("/addWorkflow", workflow.AddWorkflow)
 	// Router.Get("/listWorkflow", workflow.ListWorkflows)
 	// Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
-	Router.Post("/callWorkflow/{name}", workflow.ExecuteWorkflow)
+	Router.Post("/callWorkflow/{name}", workflow.CallWorkflow)
 	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
 	Router.Get("/claimTest", ClaimTest)
 	Router.Get("/loadClaim/{claim}", workflow.LoadClaim)

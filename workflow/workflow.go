@@ -99,15 +99,9 @@ func ListWorkflows(w http.ResponseWriter, r *http.Request) {
 	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"workflows": workflows})
 }
 
-// ExecuteWorkflow Function
-func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
+// CallWorkflow Function
+func CallWorkflow(w http.ResponseWriter, r *http.Request) {
 	var targetWorkflow model.Workflow
-	var setData gjson.Result
-	var stepAPI model.API
-	var stepAPIErr error
-
-	// apiResults := make(map[string]interface{})
-	apiResults := make(map[string]model.StepResult)
 
 	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
 	stepZero := string(bodyBytes)
@@ -138,22 +132,22 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Initializing Step Results...")
-
-	// for i := 0; i < len(targetWorkflow.Steps); i++ {
-	// 	var step model.StepResult
-
-	// 	step.APICall = targetWorkflow.Steps[i].APICall
-	// 	step.APIAccount = targetWorkflow.Steps[i].DeviceAccount
-	// 	step.Status = 0
-
-	// 	apiResults[strconv.Itoa(i+1)] = step
-	// }
-
 	fmt.Println("Generating Claim Code...")
 	workflowClaim := GenerateClaim()
 	workflowClaim.Save()
 	util.RespondwithJSON(w, http.StatusCreated, map[string]interface{}{"claimCode": workflowClaim.ClaimCode})
+
+	go ExecuteWorkflow(stepZero, targetWorkflow, workflowClaim)
+}
+
+// ExecuteWorkflow Function
+func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowClaim Claim) {
+	var setData gjson.Result
+	var stepAPI model.API
+	var stepAPIErr error
+
+	// apiResults := make(map[string]interface{})
+	apiResults := make(map[string]model.StepResult)
 
 	fmt.Println("Beginning Step Loop...")
 
