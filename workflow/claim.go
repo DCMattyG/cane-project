@@ -5,43 +5,45 @@ import (
 	"cane-project/model"
 	"fmt"
 
+	"github.com/mitchellh/mapstructure"
+
+	"github.com/fatih/structs"
+
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
-	"github.com/rs/xid"
+	"github.com/segmentio/ksuid"
 )
 
 // Claim Alias
 type Claim model.WorkflowClaim
 
 // GenerateClaim Function
-func GenerateClaim() model.WorkflowClaim {
-	var claim model.WorkflowClaim
+func GenerateClaim() Claim {
+	var claim Claim
 
-	claim.ClaimCode = xid.New()
+	claim.ClaimCode = ksuid.New().String()
+	claim.WorkflowResults = make(map[string]model.StepResult)
 
 	return claim
 }
 
-// ---> Finish by making this Save & Update
+// Save Function
+func (c *Claim) Save() {
+	var replace primitive.M
 
-// SaveClaim Function
-func (c *Claim) SaveClaim() {
 	filter := primitive.M{
 		"claimCode": c.ClaimCode,
 	}
 
-	_, findErr := database.FindOne("workflow", "claims", filter)
+	replace = structs.Map(c)
 
-	if findErr == nil {
-		fmt.Println(findErr)
+	delete(replace, "_id")
+
+	replaceVal, replaceErr := database.FindAndReplace("workflows", "claims", filter, replace)
+
+	if replaceErr != nil {
+		fmt.Println(replaceErr)
 		return
 	}
 
-	_, saveErr := database.Save("workflow", "claims", c)
-
-	if saveErr != nil {
-		fmt.Println(saveErr)
-		return
-	}
-
-	return
+	mapstructure.Decode(replaceVal, &c)
 }

@@ -108,7 +108,7 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 	var stepAPIErr error
 
 	// apiResults := make(map[string]interface{})
-	apiResults := make(map[string]*model.StepResult)
+	apiResults := make(map[string]model.StepResult)
 
 	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
 	stepZero := string(bodyBytes)
@@ -141,23 +141,25 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Initializing Step Results...")
 
-	for i := 0; i < len(targetWorkflow.Steps); i++ {
-		var step model.StepResult
+	// for i := 0; i < len(targetWorkflow.Steps); i++ {
+	// 	var step model.StepResult
 
-		step.APICall = targetWorkflow.Steps[i].APICall
-		step.APIAccount = targetWorkflow.Steps[i].DeviceAccount
-		step.Status = 0
+	// 	step.APICall = targetWorkflow.Steps[i].APICall
+	// 	step.APIAccount = targetWorkflow.Steps[i].DeviceAccount
+	// 	step.Status = 0
 
-		apiResults[strconv.Itoa(i+1)] = &step
-	}
+	// 	apiResults[strconv.Itoa(i+1)] = step
+	// }
 
 	fmt.Println("Beginning Step Loop...")
 
 	// For each step in "STEPS"
 	for i := 0; i < len(targetWorkflow.Steps); i++ {
+		var step model.StepResult
+
 		fmt.Println("Setting API Status to 1...")
 
-		apiResults[strconv.Itoa(i+1)].Status = 1
+		step.Status = 1
 
 		fmt.Println("Loading Step API...")
 
@@ -169,8 +171,8 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		apiResults[strconv.Itoa(i+1)].APICall = stepAPI.Name
-		apiResults[strconv.Itoa(i+1)].APIAccount = stepAPI.DeviceAccount
+		step.APICall = stepAPI.Name
+		step.APIAccount = stepAPI.DeviceAccount
 
 		fmt.Println("Beginning VarMap Loop...")
 
@@ -191,7 +193,7 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 				if stepFrom == "0" {
 					setData = gjson.Get(stepZero, fromMap)
 				} else {
-					fmt.Println("Res Body: ", &apiResults[stepFrom].ResBody)
+					fmt.Println("Res Body: ", apiResults[stepFrom].ResBody)
 					setData = gjson.Get(apiResults[stepFrom].ResBody, fromMap)
 				}
 
@@ -220,8 +222,8 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 					}
 				} else {
 					util.RespondWithError(w, http.StatusBadRequest, "Invalid mapping data")
-					apiResults[strconv.Itoa(i+1)].Error = errors.New("Invalid mapping data")
-					apiResults[strconv.Itoa(i+1)].Status = -1
+					step.Error = errors.New("Invalid mapping data")
+					step.Status = -1
 					return
 				}
 
@@ -232,15 +234,15 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Println("Updated Body: ", stepAPI.Body)
-		apiResults[strconv.Itoa(i+1)].ReqBody = stepAPI.Body
+		step.ReqBody = stepAPI.Body
 
 		apiResp, apiErr := api.CallAPI(stepAPI)
 
 		if apiErr != nil {
 			fmt.Println(apiErr)
 			util.RespondWithError(w, http.StatusBadRequest, "error executing API")
-			apiResults[strconv.Itoa(i+1)].Error = apiErr
-			apiResults[strconv.Itoa(i+1)].Status = -1
+			step.Error = apiErr
+			step.Status = -1
 			return
 		}
 
@@ -254,7 +256,7 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("API Response Body:")
 		fmt.Println(string(respBody))
 
-		apiResults[strconv.Itoa(i+1)].ResBody = string(respBody)
+		step.ResBody = string(respBody)
 
 		bodyObject := make(map[string]interface{})
 		marshalErr := json.Unmarshal(respBody, &bodyObject)
@@ -265,7 +267,8 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		apiResults[strconv.Itoa(i+1)].Status = 2
+		step.Status = 2
+		apiResults[strconv.Itoa(i+1)] = step
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, apiResults)

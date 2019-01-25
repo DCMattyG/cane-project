@@ -158,6 +158,48 @@ func FindAndUpdate(database string, collection string, filter bson.M, update bso
 	return result, nil
 }
 
+// FindAndReplace Function
+func FindAndReplace(database string, collection string, filter bson.M, replace bson.M) (primitive.M, error) {
+	var result primitive.M
+	var opts options.FindOneAndReplaceOptions
+
+	opts.SetReturnDocument(options.After)
+	opts.SetUpsert(true)
+
+	SelectDatabase(database, collection)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := db.FindOneAndReplace(ctx, filter, replace, &opts).Decode(&result)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+// ReplaceOne Function
+func ReplaceOne(database string, collection string, filter bson.M, replace bson.M) (*mongo.UpdateResult, error) {
+	var opts options.ReplaceOptions
+
+	opts.SetUpsert(true)
+
+	SelectDatabase(database, collection)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := db.ReplaceOne(ctx, filter, replace, &opts)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 func init() {
 	var err error
 
@@ -172,7 +214,7 @@ func init() {
 		fmt.Println("[SUCCESS]")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	fmt.Print("Connecting to database...")

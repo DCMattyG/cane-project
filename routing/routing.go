@@ -11,6 +11,7 @@ import (
 	"cane-project/workflow"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -80,6 +81,7 @@ func Routers() {
 	// Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
 	Router.Post("/callWorkflow/{name}", workflow.ExecuteWorkflow)
 	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
+	Router.Get("/claimTest", ClaimTest)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -386,4 +388,37 @@ func TestGJSON(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(gJSON), &output)
 
 	util.RespondwithJSON(w, http.StatusCreated, output)
+}
+
+// ClaimTest Function
+func ClaimTest(w http.ResponseWriter, r *http.Request) {
+	var testResult model.StepResult
+
+	stepResults := make(map[string]model.StepResult)
+
+	fmt.Println("Generating new claim...")
+	claim := workflow.GenerateClaim()
+
+	fmt.Println("Saving new claim...")
+	claim.Save()
+
+	fmt.Println("Loading fake step data...")
+
+	testResult.APIAccount = "testaccount"
+	testResult.APICall = "testcall"
+	testResult.Error = errors.New("")
+	testResult.ReqBody = "{req_body}"
+	testResult.ResBody = "{res_body}"
+	testResult.Status = 2
+
+	fmt.Println("Assigning fake step data to fake results...")
+	stepResults["1"] = testResult
+
+	fmt.Println("Assigning fake results to claim...")
+	claim.WorkflowResults = stepResults
+
+	fmt.Println("Saving updated claim...")
+	claim.Save()
+
+	util.RespondwithJSON(w, http.StatusCreated, map[string]interface{}{"claim": claim})
 }
