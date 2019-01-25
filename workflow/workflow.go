@@ -6,7 +6,6 @@ import (
 	"cane-project/model"
 	"cane-project/util"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -151,6 +150,11 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 	// 	apiResults[strconv.Itoa(i+1)] = step
 	// }
 
+	fmt.Println("Generating Claim Code...")
+	workflowClaim := GenerateClaim()
+	workflowClaim.Save()
+	util.RespondwithJSON(w, http.StatusCreated, map[string]interface{}{"claimCode": workflowClaim.ClaimCode})
+
 	fmt.Println("Beginning Step Loop...")
 
 	// For each step in "STEPS"
@@ -160,6 +164,9 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Setting API Status to 1...")
 
 		step.Status = 1
+		apiResults[strconv.Itoa(i+1)] = step
+		workflowClaim.WorkflowResults = apiResults
+		workflowClaim.Save()
 
 		fmt.Println("Loading Step API...")
 
@@ -167,7 +174,11 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 
 		if stepAPIErr != nil {
 			fmt.Println(stepAPIErr)
-			util.RespondWithError(w, http.StatusBadRequest, "error loading target API")
+			step.Error = stepAPIErr.Error()
+			apiResults[strconv.Itoa(i+1)] = step
+			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.Save()
+			// util.RespondWithError(w, http.StatusBadRequest, "error loading target API")
 			return
 		}
 
@@ -221,15 +232,30 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 						fmt.Println("Unidentified Kind: ", dataKind)
 					}
 				} else {
-					util.RespondWithError(w, http.StatusBadRequest, "Invalid mapping data")
-					step.Error = errors.New("Invalid mapping data")
+					step.Error = "Invalid mapping data"
 					step.Status = -1
+					apiResults[strconv.Itoa(i+1)] = step
+					workflowClaim.WorkflowResults = apiResults
+					workflowClaim.Save()
+					// util.RespondWithError(w, http.StatusBadRequest, "Invalid mapping data")
 					return
 				}
 
 				fmt.Println("Setting StepAPI Body...")
 
-				stepAPI.Body, _ = sjson.Set(stepAPI.Body, val, typedData)
+				var sjsonSetErr error
+				stepAPI.Body, sjsonSetErr = sjson.Set(stepAPI.Body, val, typedData)
+
+				if sjsonSetErr != nil {
+					fmt.Println(sjsonSetErr)
+					step.Error = sjsonSetErr.Error()
+					step.Status = -1
+					apiResults[strconv.Itoa(i+1)] = step
+					workflowClaim.WorkflowResults = apiResults
+					workflowClaim.Save()
+					// util.RespondWithError(w, http.StatusBadRequest, "error mapping api variables")
+					return
+				}
 			}
 		}
 
@@ -240,9 +266,12 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 
 		if apiErr != nil {
 			fmt.Println(apiErr)
-			util.RespondWithError(w, http.StatusBadRequest, "error executing API")
-			step.Error = apiErr
+			step.Error = apiErr.Error()
 			step.Status = -1
+			apiResults[strconv.Itoa(i+1)] = step
+			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.Save()
+			// util.RespondWithError(w, http.StatusBadRequest, "error executing API")
 			return
 		}
 
@@ -251,7 +280,18 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 
 		defer apiResp.Body.Close()
 
-		respBody, _ := ioutil.ReadAll(apiResp.Body)
+		respBody, respErr := ioutil.ReadAll(apiResp.Body)
+
+		if respErr != nil {
+			fmt.Println(respErr)
+			step.Error = respErr.Error()
+			step.Status = -1
+			apiResults[strconv.Itoa(i+1)] = step
+			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.Save()
+			// util.RespondWithError(w, http.StatusBadRequest, "error reading response body")
+			return
+		}
 
 		fmt.Println("API Response Body:")
 		fmt.Println(string(respBody))
@@ -263,13 +303,19 @@ func ExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 
 		if marshalErr != nil {
 			fmt.Println(marshalErr)
-			util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+			step.Error = marshalErr.Error()
+			apiResults[strconv.Itoa(i+1)] = step
+			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.Save()
+			// util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
 			return
 		}
 
 		step.Status = 2
 		apiResults[strconv.Itoa(i+1)] = step
+		workflowClaim.WorkflowResults = apiResults
+		workflowClaim.Save()
 	}
 
-	util.RespondwithJSON(w, http.StatusOK, apiResults)
+	// util.RespondwithJSON(w, http.StatusOK, apiResults)
 }

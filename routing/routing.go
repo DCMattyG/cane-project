@@ -11,7 +11,6 @@ import (
 	"cane-project/workflow"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -82,6 +81,7 @@ func Routers() {
 	Router.Post("/callWorkflow/{name}", workflow.ExecuteWorkflow)
 	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
 	Router.Get("/claimTest", ClaimTest)
+	Router.Get("/loadClaim/{claim}", workflow.LoadClaim)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -406,7 +406,7 @@ func ClaimTest(w http.ResponseWriter, r *http.Request) {
 
 	testResult.APIAccount = "testaccount"
 	testResult.APICall = "testcall"
-	testResult.Error = errors.New("")
+	testResult.Error = ""
 	testResult.ReqBody = "{req_body}"
 	testResult.ResBody = "{res_body}"
 	testResult.Status = 2

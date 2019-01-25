@@ -110,6 +110,6 @@ type StepResult struct {
 	APIAccount string `json:"apiAccount" bson:"apiAccount" mapstructure:"apiAccount" structs:"apiAccount"`
 	ReqBody    string `json:"reqBody" bson:"reqBody" mapstructure:"reqBody" structs:"reqBody"`
 	ResBody    string `json:"resBody" bson:"resBody" mapstructure:"resBody" structs:"resBody"`
-	Error      error  `json:"error" bson:"error" mapstructure:"error" structs:"error"`
+	Error      string `json:"error" bson:"error" mapstructure:"error" structs:"error"`
 	Status     int    `json:"status" bson:"status" mapstructure:"status" structs:"status"`
 }
