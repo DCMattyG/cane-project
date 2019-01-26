@@ -319,7 +319,7 @@ func GetAPIs(w http.ResponseWriter, r *http.Request) {
 
 	if apis == nil {
 		fmt.Println("invalid device or no apis")
-		util.RespondWithError(w, http.StatusBadRequest, "invalid account or no apis")
+		util.RespondWithError(w, http.StatusNoContent, "invalid account or no apis")
 		return
 	}
 
