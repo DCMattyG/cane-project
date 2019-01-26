@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/go-chi/chi"
@@ -224,7 +225,10 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		transport.Proxy = http.ProxyURL(proxyURL)
 	}
 
-	client = &http.Client{Transport: transport}
+	client = &http.Client{
+		Transport: transport,
+		Timeout:   30 * time.Second,
+	}
 
 	deviceFilter := primitive.M{
 		"name": targetAPI.DeviceAccount,
