@@ -8,13 +8,13 @@ import (
 
 // BasicAuth Type
 type BasicAuth struct {
-	UserName string `json:"userName" bson:"userName" mapstructure:"userName" structs:"userName"`
+	UserName string `json:"username" bson:"username" mapstructure:"username" structs:"username"`
 	Password string `json:"password" bson:"password" mapstructure:"password" structs:"password"`
 }
 
 // SessionAuth Type
 type SessionAuth struct {
-	UserName       string              `json:"userName" bson:"userName" mapstructure:"userName" structs:"userName"`
+	UserName       string              `json:"username" bson:"username" mapstructure:"username" structs:"username"`
 	Password       string              `json:"password" bson:"password" mapstructure:"password" structs:"password"`
 	AuthBody       string              `json:"authBody" bson:"authBody" mapstructure:"authBody" structs:"authBody"`
 	AuthBodyMap    []map[string]string `json:"authBodyMap" bson:"authBodyMap" mapstructure:"authBodyMap" structs:"authBodyMap"`
@@ -49,7 +49,7 @@ type UserAccount struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
 	FirstName string             `json:"fname" bson:"fname" mapstructure:"fname" structs:"fname"`
 	LastName  string             `json:"lname" bson:"lname" mapstructure:"lname" structs:"lname"`
-	UserName  string             `json:"userName" bson:"userName" mapstructure:"userName" structs:"userName"`
+	UserName  string             `json:"username" bson:"username" mapstructure:"username" structs:"username"`
 	Password  string             `json:"password" bson:"password" mapstructure:"password" structs:"password"`
 	Privilege int                `json:"privilege" bson:"privilege" mapstructure:"privilege" structs:"privilege"`
 	Enable    bool               `json:"enable" bson:"enable" mapstructure:"enable" structs:"enable"`

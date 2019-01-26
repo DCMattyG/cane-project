@@ -97,10 +97,10 @@ func Routers() {
 
 		/* Final Routes */
 		r.Get("/user", account.GetUsers)
-		r.Get("/user/{userName}", account.GetUser)
+		r.Get("/user/{username}", account.GetUser)
 		r.Post("/user", account.CreateUser)
-		r.Patch("/user/{userName}", account.UpdateUser)
-		r.Delete("/user/{userName}", account.DeleteUser)
+		r.Patch("/user/{username}", account.UpdateUser)
+		r.Delete("/user/{username}", account.DeleteUser)
 
 		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)

@@ -33,7 +33,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&login)
 
 	filter := primitive.M{
-		"userName": login["userName"],
+		"username": login["username"],
 	}
 
 	foundVal, _ := database.FindOne("accounts", "users", filter)
@@ -52,7 +52,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	// var opts options.FindOptions
 
 	filter := primitive.M{
-		"userName": chi.URLParam(r, "userName"),
+		"username": chi.URLParam(r, "username"),
 	}
 
 	// projection := primitive.M{
@@ -81,7 +81,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	projection := primitive.M{
 		"_id":      0,
-		"userName": 1,
+		"username": 1,
 	}
 
 	opts.SetProjection(projection)
@@ -89,7 +89,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	foundVals, _ := database.FindAll("accounts", "users", primitive.M{}, opts)
 
 	for _, user := range foundVals {
-		accountList = append(accountList, user["userName"].(string))
+		accountList = append(accountList, user["username"].(string))
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"users": accountList})
@@ -129,7 +129,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // DeleteUser Function
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	filter := primitive.M{
-		"userName": chi.URLParam(r, "userName"),
+		"username": chi.URLParam(r, "username"),
 	}
 
 	deleteErr := database.Delete("accounts", "users", filter)
@@ -146,7 +146,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 // UserExists Function
 func UserExists(username string) bool {
 	filter := primitive.M{
-		"userName": username,
+		"username": username,
 	}
 
 	_, findErr := database.FindOne("accounts", "users", filter)
@@ -166,7 +166,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&userDetails)
 
 	filter := primitive.M{
-		"userName": chi.URLParam(r, "userName"),
+		"username": chi.URLParam(r, "username"),
 	}
 
 	findVal, findErr := database.FindOne("accounts", "users", filter)
@@ -203,7 +203,7 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&account)
 
 	filter := primitive.M{
-		"userName": account.UserName,
+		"username": account.UserName,
 	}
 
 	foundVal, findErr := database.FindOne("accounts", "users", filter)
@@ -224,7 +224,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var account model.UserAccount
 
 	filter := primitive.M{
-		"userName": chi.URLParam(r, "user"),
+		"username": chi.URLParam(r, "user"),
 	}
 
 	findVal, findErr := database.FindOne("accounts", "users", filter)
