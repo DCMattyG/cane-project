@@ -198,16 +198,17 @@ func FindAndReplace(database string, collection string, filter bson.M, replace b
 
 // ReplaceOne Function
 func ReplaceOne(database string, collection string, filter bson.M, replace bson.M) (*mongo.UpdateResult, error) {
-	var opts options.ReplaceOptions
+	// var opts options.ReplaceOptions
 
-	opts.SetUpsert(true)
+	// opts.SetUpsert(true)
 
 	SelectDatabase(database, collection)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := db.ReplaceOne(ctx, filter, replace, &opts)
+	// result, err := db.ReplaceOne(ctx, filter, replace, &opts)
+	result, err := db.ReplaceOne(ctx, filter, replace)
 
 	if err != nil {
 		return result, err

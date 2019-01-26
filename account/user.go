@@ -36,8 +36,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		"username": login["username"],
 	}
 
-	foundVal, _ := database.FindOne("accounts", "users", filter)
-	mapstructure.Decode(foundVal, &account)
+	findVal, _ := database.FindOne("accounts", "users", filter)
+	mapstructure.Decode(findVal, &account)
 
 	if account.Password == login["password"] {
 		util.RespondwithJSON(w, http.StatusOK, structs.Map(account))
@@ -49,26 +49,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 // GetUser Function
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var account model.UserAccount
-	// var opts options.FindOptions
 
 	filter := primitive.M{
 		"username": chi.URLParam(r, "username"),
 	}
 
-	// projection := primitive.M{
-	// 	"_id":      0,
-	// 	"username": 1,
-	// }
+	findVal, findErr := database.FindOne("accounts", "users", filter)
 
-	// opts.SetProjection(projection)
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "user not found")
+		return
+	}
 
-	foundVal, _ := database.FindOne("accounts", "users", filter)
-
-	// for _, user := range accounts {
-	// 	accountList = append(accountList, user["username"].(string))
-	// }
-
-	mapstructure.Decode(foundVal, &account)
+	mapstructure.Decode(findVal, &account)
 
 	util.RespondwithJSON(w, http.StatusOK, account)
 }
@@ -86,13 +80,44 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	opts.SetProjection(projection)
 
-	foundVals, _ := database.FindAll("accounts", "users", primitive.M{}, opts)
+	findVals, findErr := database.FindAll("accounts", "users", primitive.M{}, opts)
 
-	for _, user := range foundVals {
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no users found")
+		return
+	}
+
+	for _, user := range findVals {
 		accountList = append(accountList, user["username"].(string))
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"users": accountList})
+}
+
+// GetUserFromDB Function
+func GetUserFromDB(userName string) (model.UserAccount, error) {
+	var user model.UserAccount
+
+	filter := primitive.M{
+		"username": userName,
+	}
+
+	findVal, findErr := database.FindOne("accounts", "users", filter)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		return user, findErr
+	}
+
+	mapErr := mapstructure.Decode(findVal, &user)
+
+	if mapErr != nil {
+		fmt.Println(mapErr)
+		return user, mapErr
+	}
+
+	return user, nil
 }
 
 // CreateUser Function
@@ -123,7 +148,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userVal, _ := database.FindOne("accounts", "users", filter)
 	mapstructure.Decode(userVal, &target)
 
-	util.RespondwithJSON(w, http.StatusCreated, target)
+	util.RespondwithString(w, http.StatusCreated, "")
 }
 
 // DeleteUser Function
@@ -140,7 +165,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.RespondwithJSON(w, http.StatusOK, nil)
+	util.RespondwithString(w, http.StatusOK, "")
 }
 
 // UserExists Function
@@ -193,7 +218,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.RespondwithJSON(w, http.StatusOK, updatedUser)
+	util.RespondwithString(w, http.StatusOK, "")
 }
 
 // ValidateUserToken Function
@@ -206,7 +231,7 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 		"username": account.UserName,
 	}
 
-	foundVal, findErr := database.FindOne("accounts", "users", filter)
+	findVal, findErr := database.FindOne("accounts", "users", filter)
 
 	if findErr != nil {
 		fmt.Println(findErr)
@@ -214,7 +239,7 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapstructure.Decode(foundVal, &account)
+	mapstructure.Decode(findVal, &account)
 
 	jwt.ValidateJWT(account.Token)
 }

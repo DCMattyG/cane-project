@@ -44,7 +44,6 @@ func EncodeBase64(encode string) string {
 // RespondwithJSON write json response format
 func RespondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)
-	// fmt.Println(payload)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)
@@ -53,16 +52,14 @@ func RespondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 // RespondwithXML write xml response format
 func RespondwithXML(w http.ResponseWriter, code int, payload interface{}) {
 	response := []byte(payload.(model.XMLNode).Marshal())
-	// fmt.Println(payload)
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(code)
 	w.Write(response)
 }
 
-// RespondwithString write xml response format
+// RespondwithString write string response format
 func RespondwithString(w http.ResponseWriter, code int, payload interface{}) {
 	response := []byte(payload.(string))
-	// fmt.Println(payload)
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(code)
 	w.Write(response)

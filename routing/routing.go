@@ -96,11 +96,19 @@ func Routers() {
 		r.Use(jwtauth.Authenticator)
 
 		/* Final Routes */
+		/* /user */
 		r.Get("/user", account.GetUsers)
 		r.Get("/user/{username}", account.GetUser)
 		r.Post("/user", account.CreateUser)
 		r.Patch("/user/{username}", account.UpdateUser)
 		r.Delete("/user/{username}", account.DeleteUser)
+
+		/* /device */
+		r.Get("/device", account.GetDevices)
+		r.Get("/device/{devicename}", account.GetDevice)
+		r.Post("/device", account.CreateDevice)
+		r.Patch("/device/{devicename}", account.UpdateDevice)
+		r.Delete("/device/{devicename}", account.DeleteDevice)
 
 		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)
@@ -108,10 +116,10 @@ func Routers() {
 		// r.Post("/addUser", account.AddUser)
 		r.Post("/validateToken", account.ValidateUserToken)
 		r.Patch("/updateToken/{user}", account.RefreshToken)
-		r.Post("/addDevice", account.AddDevice)
-		r.Get("/loadDevice/{name}", account.LoadDevice)
-		r.Patch("/updateDevice/{name}", account.UpdateDevice)
-		r.Get("/listDevice", account.ListDevices)
+		// r.Post("/addDevice", account.AddDevice)
+		// r.Get("/loadDevice/{name}", account.LoadDevice)
+		// r.Patch("/updateDevice/{name}", account.UpdateDevice)
+		// r.Get("/listDevice", account.ListDevices)
 		r.Get("/deviceApis/{device}", account.ListDeviceAPIs)
 		r.Post("/addApi", api.AddAPI)
 		r.Post("/addWorkflow", workflow.AddWorkflow)

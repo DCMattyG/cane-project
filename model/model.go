@@ -61,8 +61,8 @@ type DeviceAccount struct {
 	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
 	Name     string             `json:"name" bson:"name" mapstructure:"name" structs:"name"`
 	IP       string             `json:"ip" bson:"ip" mapstructure:"ip" structs:"ip"`
-	AuthType string             `json:"authtype" bson:"authtype" mapstructure:"authtype" structs:"authType"`
-	AuthObj  primitive.ObjectID `json:"authobj" bson:"authobj" mapstructure:"authobj" structs:"authobj"`
+	AuthType string             `json:"authType" bson:"authType" mapstructure:"authType" structs:"authType"`
+	AuthObj  primitive.ObjectID `json:"authObj" bson:"authObj" mapstructure:"authObj" structs:"authObj"`
 }
 
 // RouteValue Struct
