@@ -81,10 +81,9 @@ func Routers() {
 	// Router.Post("/addWorkflow", workflow.AddWorkflow)
 	// Router.Get("/listWorkflow", workflow.ListWorkflows)
 	// Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
-	Router.Post("/callWorkflow/{name}", workflow.CallWorkflow)
 	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
-	Router.Get("/claimTest", ClaimTest)
-	Router.Get("/loadClaim/{claim}", workflow.LoadClaim)
+	// Router.Get("/claimTest", ClaimTest)
+	// Router.Get("/loadClaim/{claim}", workflow.LoadClaim)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -123,6 +122,11 @@ func Routers() {
 		r.Post("/workflow", workflow.CreateWorkflow)
 		// r.Patch("/workflow/{workflowname}", workflow.UpdateWorkflow)
 		r.Delete("/workflow/{workflowname}", workflow.DeleteWorkflow)
+		// Router.Post("/callWorkflow/{name}", workflow.CallWorkflow)
+
+		/* /claim */
+		r.Get("/claim", workflow.GetClaims)
+		r.Get("/claim/{claimcode}", workflow.GetClaim)
 
 		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)

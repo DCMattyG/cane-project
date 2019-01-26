@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/structs"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"github.com/segmentio/ksuid"
 )
 
@@ -51,9 +52,35 @@ func (c *Claim) Save() {
 	mapstructure.Decode(replaceVal, &c)
 }
 
-// LoadClaim Function
-func LoadClaim(w http.ResponseWriter, r *http.Request) {
-	claimCode := chi.URLParam(r, "claim")
+// GetClaims Function
+func GetClaims(w http.ResponseWriter, r *http.Request) {
+	var opts options.FindOptions
+	var claims []string
+
+	foundVal, foundErr := database.FindAll("workflows", "claims", primitive.M{}, opts)
+
+	if foundErr != nil {
+		fmt.Println(foundErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no claims found")
+		return
+	}
+
+	if len(foundVal) == 0 {
+		fmt.Println(foundVal)
+		util.RespondWithError(w, http.StatusBadRequest, "empty claims list")
+		return
+	}
+
+	for key := range foundVal {
+		claims = append(claims, foundVal[key]["claimCode"].(string))
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"claims": claims})
+}
+
+// GetClaim Function
+func GetClaim(w http.ResponseWriter, r *http.Request) {
+	claimCode := chi.URLParam(r, "claimcode")
 
 	foundVal, foundErr := GetClaimFromDB(claimCode)
 
