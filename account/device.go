@@ -148,7 +148,7 @@ func UpdateDevice(w http.ResponseWriter, r *http.Request) {
 
 	mapstructure.Decode(loadDevice, &device)
 
-	device.IP = gjson.Get(target, "device.ip").String()
+	device.URL = gjson.Get(target, "device.url").String()
 
 	authType := gjson.Get(target, "device.authType").String()
 	authInfo := gjson.Get(target, "auth").Value()

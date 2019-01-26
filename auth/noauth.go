@@ -20,7 +20,7 @@ func NoAuth(api model.API) (*http.Request, error) {
 		return nil, deviceErr
 	}
 
-	host, err := url.Parse(device.IP)
+	host, err := url.Parse(device.URL)
 	if err != nil {
 		panic("Cannot parse *host*!")
 	}

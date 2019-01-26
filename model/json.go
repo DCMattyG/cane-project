@@ -174,6 +174,7 @@ func StripJSONRecursive(copy, original reflect.Value) {
 		// newSlice := reflect.MakeSlice(original.Type(), original.Len(), original.Cap())
 		switch sliceKind := original.Index(0).Kind(); sliceKind {
 		case reflect.String:
+			fmt.Println("Slice String")
 			// copy.Set(reflect.MakeSlice(original.Type(), 0, original.Cap()))
 			copy.Set(reflect.MakeSlice(original.Type(), 0, 0))
 		case reflect.Int:

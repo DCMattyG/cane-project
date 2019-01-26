@@ -60,7 +60,7 @@ type UserAccount struct {
 type DeviceAccount struct {
 	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
 	Name     string             `json:"name" bson:"name" mapstructure:"name" structs:"name"`
-	IP       string             `json:"ip" bson:"ip" mapstructure:"ip" structs:"ip"`
+	URL      string             `json:"url" bson:"url" mapstructure:"url" structs:"url"`
 	AuthType string             `json:"authType" bson:"authType" mapstructure:"authType" structs:"authType"`
 	AuthObj  primitive.ObjectID `json:"authObj" bson:"authObj" mapstructure:"authObj" structs:"authObj"`
 }
@@ -96,12 +96,12 @@ type WorkflowClaim struct {
 
 // Step Struct
 type Step struct {
-	ID            primitive.ObjectID  `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
-	StepNum       int                 `json:"stepNum" bson:"stepNum" mapstructure:"stepNum" structs:"stepNum"`
+	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
+	// StepNum       int                 `json:"stepNum" bson:"stepNum" mapstructure:"stepNum" structs:"stepNum"`
 	APICall       string              `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
 	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount" structs:"deviceAccount"`
 	VarMap        []map[string]string `json:"varMap" bson:"varMap" mapstructure:"varMap" structs:"varMap"`
-	Status        int                 `json:"status" bson:"status" mapstructure:"status" structs:"status"`
+	// Status        int                 `json:"status" bson:"status" mapstructure:"status" structs:"status"`
 }
 
 // StepResult Struct
