@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mongodb/mongo-go-driver/mongo/options"
+
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/go-chi/chi"
@@ -175,9 +177,10 @@ func UpdateDevice(w http.ResponseWriter, r *http.Request) {
 
 // ListDevices Function
 func ListDevices(w http.ResponseWriter, r *http.Request) {
+	var opts options.FindOptions
 	var devices []string
 
-	foundVal, foundErr := database.FindAll("accounts", "devices", primitive.M{})
+	foundVal, foundErr := database.FindAll("accounts", "devices", primitive.M{}, opts)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)
@@ -194,11 +197,12 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 
 // ListDeviceAPIs Function
 func ListDeviceAPIs(w http.ResponseWriter, r *http.Request) {
+	var opts options.FindOptions
 	device := chi.URLParam(r, "device")
 
 	var apis []string
 
-	foundVal, foundErr := database.FindAll("apis", device, primitive.M{})
+	foundVal, foundErr := database.FindAll("apis", device, primitive.M{}, opts)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)

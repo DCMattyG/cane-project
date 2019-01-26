@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mongodb/mongo-go-driver/mongo/options"
+
 	"github.com/tidwall/sjson"
 
 	"github.com/mitchellh/mapstructure"
@@ -76,9 +78,10 @@ func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
 
 // ListWorkflows Function
 func ListWorkflows(w http.ResponseWriter, r *http.Request) {
+	var opts options.FindOptions
 	var workflows []string
 
-	foundVal, foundErr := database.FindAll("workflows", "workflow", primitive.M{})
+	foundVal, foundErr := database.FindAll("workflows", "workflow", primitive.M{}, opts)
 
 	if foundErr != nil {
 		fmt.Println(foundErr)

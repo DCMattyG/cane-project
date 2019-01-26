@@ -49,7 +49,7 @@ type UserAccount struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
 	FirstName string             `json:"fname" bson:"fname" mapstructure:"fname" structs:"fname"`
 	LastName  string             `json:"lname" bson:"lname" mapstructure:"lname" structs:"lname"`
-	UserName  string             `json:"username" bson:"username" mapstructure:"username" structs:"username"`
+	UserName  string             `json:"userName" bson:"userName" mapstructure:"userName" structs:"userName"`
 	Password  string             `json:"password" bson:"password" mapstructure:"password" structs:"password"`
 	Privilege int                `json:"privilege" bson:"privilege" mapstructure:"privilege" structs:"privilege"`
 	Enable    bool               `json:"enable" bson:"enable" mapstructure:"enable" structs:"enable"`

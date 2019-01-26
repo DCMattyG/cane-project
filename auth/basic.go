@@ -52,7 +52,7 @@ func BasicAuth(api model.API) (*http.Request, error) {
 		return nil, foundErr
 	}
 
-	userPass := []byte(foundVal["username"].(string) + ":" + foundVal["password"].(string))
+	userPass := []byte(foundVal["userName"].(string) + ":" + foundVal["password"].(string))
 	authKey := "Basic " + base64.StdEncoding.EncodeToString(userPass)
 
 	// Append headers to HTTP request

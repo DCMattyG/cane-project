@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mongodb/mongo-go-driver/mongo/options"
+
 	"github.com/fatih/structs"
 	"github.com/go-chi/chi"
 	"github.com/mitchellh/mapstructure"
@@ -31,7 +33,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&login)
 
 	filter := primitive.M{
-		"username": login["username"],
+		"userName": login["userName"],
 	}
 
 	foundVal, _ := database.FindOne("accounts", "users", filter)
@@ -44,21 +46,63 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddUser Function
-func AddUser(w http.ResponseWriter, r *http.Request) {
+// GetUser Function
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	var account model.UserAccount
+	// var opts options.FindOptions
+
+	filter := primitive.M{
+		"userName": chi.URLParam(r, "userName"),
+	}
+
+	// projection := primitive.M{
+	// 	"_id":      0,
+	// 	"username": 1,
+	// }
+
+	// opts.SetProjection(projection)
+
+	foundVal, _ := database.FindOne("accounts", "users", filter)
+
+	// for _, user := range accounts {
+	// 	accountList = append(accountList, user["username"].(string))
+	// }
+
+	mapstructure.Decode(foundVal, &account)
+
+	util.RespondwithJSON(w, http.StatusOK, account)
+}
+
+// GetUsers Function
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+	// var accounts []primitive.M
+	var opts options.FindOptions
+	var accountList []string
+
+	projection := primitive.M{
+		"_id":      0,
+		"userName": 1,
+	}
+
+	opts.SetProjection(projection)
+
+	foundVals, _ := database.FindAll("accounts", "users", primitive.M{}, opts)
+
+	for _, user := range foundVals {
+		accountList = append(accountList, user["userName"].(string))
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"users": accountList})
+}
+
+// CreateUser Function
+func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var target model.UserAccount
 
 	json.NewDecoder(r.Body).Decode(&target)
 
-	filter := primitive.M{
-		"username": target.UserName,
-	}
-
-	_, findErr := database.FindOne("accounts", "users", filter)
-
-	if findErr == nil {
-		fmt.Println(findErr)
-		util.RespondWithError(w, http.StatusBadRequest, "existing account")
+	if UserExists(target.UserName) {
+		util.RespondWithError(w, http.StatusBadRequest, "username already exists")
 		return
 	}
 
@@ -72,13 +116,84 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filter := primitive.M{
+		"_id": userID.(primitive.ObjectID),
+	}
+
 	userVal, _ := database.FindOne("accounts", "users", filter)
 	mapstructure.Decode(userVal, &target)
 
-	fmt.Print("Inserted ID: ")
-	fmt.Println(userID)
+	util.RespondwithJSON(w, http.StatusCreated, target)
+}
 
-	util.RespondwithJSON(w, http.StatusCreated, structs.Map(target))
+// DeleteUser Function
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	filter := primitive.M{
+		"userName": chi.URLParam(r, "userName"),
+	}
+
+	deleteErr := database.Delete("accounts", "users", filter)
+
+	if deleteErr != nil {
+		fmt.Println(deleteErr)
+		util.RespondWithError(w, http.StatusBadRequest, "user not found")
+		return
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, nil)
+}
+
+// UserExists Function
+func UserExists(username string) bool {
+	filter := primitive.M{
+		"userName": username,
+	}
+
+	_, findErr := database.FindOne("accounts", "users", filter)
+
+	if findErr == nil {
+		return true
+	}
+
+	return false
+}
+
+// UpdateUser Function
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	var userDetails map[string]interface{}
+	var updatedUser model.UserAccount
+
+	json.NewDecoder(r.Body).Decode(&userDetails)
+
+	filter := primitive.M{
+		"userName": chi.URLParam(r, "userName"),
+	}
+
+	findVal, findErr := database.FindOne("accounts", "users", filter)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "user not found")
+		return
+	}
+
+	mapstructure.Decode(findVal, &updatedUser)
+
+	updatedUser.FirstName = userDetails["fname"].(string)
+	updatedUser.LastName = userDetails["lname"].(string)
+	updatedUser.Password = userDetails["password"].(string)
+	updatedUser.Privilege = int(userDetails["privilege"].(float64))
+	updatedUser.Enable = userDetails["enable"].(bool)
+
+	_, replaceErr := database.ReplaceOne("accounts", "users", filter, structs.Map(updatedUser))
+
+	if replaceErr != nil {
+		fmt.Println(replaceErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error updating user")
+		return
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, updatedUser)
 }
 
 // ValidateUserToken Function
@@ -88,7 +203,7 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&account)
 
 	filter := primitive.M{
-		"username": account.UserName,
+		"userName": account.UserName,
 	}
 
 	foundVal, findErr := database.FindOne("accounts", "users", filter)
@@ -104,39 +219,12 @@ func ValidateUserToken(w http.ResponseWriter, r *http.Request) {
 	jwt.ValidateJWT(account.Token)
 }
 
-// ChangePassword Function
-func ChangePassword(w http.ResponseWriter, r *http.Request) {
-	var details map[string]interface{}
-
-	json.NewDecoder(r.Body).Decode(&details)
-
-	filter := primitive.M{
-		"username": chi.URLParam(r, "user"),
-	}
-
-	update := primitive.M{
-		"$set": primitive.M{
-			"password": details["password"],
-		},
-	}
-
-	updateVal, updateErr := database.FindAndUpdate("accounts", "users", filter, update)
-
-	if updateErr != nil {
-		fmt.Println(updateErr)
-		util.RespondWithError(w, http.StatusBadRequest, "user not found")
-		return
-	}
-
-	util.RespondwithJSON(w, http.StatusOK, updateVal)
-}
-
 // RefreshToken Function
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var account model.UserAccount
 
 	filter := primitive.M{
-		"username": chi.URLParam(r, "user"),
+		"userName": chi.URLParam(r, "user"),
 	}
 
 	findVal, findErr := database.FindOne("accounts", "users", filter)

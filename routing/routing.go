@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mongodb/mongo-go-driver/mongo/options"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth"
@@ -34,11 +36,12 @@ func init() {
 
 // Routers Function
 func Routers() {
+	var opts options.FindOptions
 	var iterVals []model.RouteValue
 	Router = chi.NewRouter()
 
 	filter := primitive.M{}
-	foundVals, _ := database.FindAll("routing", "routes", filter)
+	foundVals, _ := database.FindAll("routing", "routes", filter, opts)
 	mapstructure.Decode(foundVals, &iterVals)
 
 	fmt.Println("Updating routes...")
@@ -85,12 +88,24 @@ func Routers() {
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
+		/* Allow Cross-Origin Requests */
 		r.Use(cors.Handler)
+
+		/* JWT Token Security */
 		r.Use(jwtauth.Verifier(jwt.TokenAuth))
 		r.Use(jwtauth.Authenticator)
+
+		/* Final Routes */
+		r.Get("/user", account.GetUsers)
+		r.Get("/user/{userName}", account.GetUser)
+		r.Post("/user", account.CreateUser)
+		r.Patch("/user/{userName}", account.UpdateUser)
+		r.Delete("/user/{userName}", account.DeleteUser)
+
+		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)
 		r.Post("/parseVars", ParseVars)
-		r.Post("/addUser", account.AddUser)
+		// r.Post("/addUser", account.AddUser)
 		r.Post("/validateToken", account.ValidateUserToken)
 		r.Patch("/updateToken/{user}", account.RefreshToken)
 		r.Post("/addDevice", account.AddDevice)
@@ -102,7 +117,7 @@ func Routers() {
 		r.Post("/addWorkflow", workflow.AddWorkflow)
 		r.Get("/listWorkflow", workflow.ListWorkflows)
 		r.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
-		r.Patch("/changePassword/{user}", account.ChangePassword)
+		// r.Patch("/changePassword/{user}", account.ChangePassword)
 		r.Get("/test", TestPost)
 	})
 

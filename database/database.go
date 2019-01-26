@@ -46,6 +46,22 @@ func Save(database string, collection string, insertVal interface{}) (interface{
 	return id, nil
 }
 
+// Delete Function
+func Delete(database string, collection string, deleteVal interface{}) error {
+	SelectDatabase(database, collection)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := db.DeleteOne(ctx, &deleteVal)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // FindDB Function
 func FindDB(filter bson.M) ([]string, error) {
 	var result []string
@@ -102,7 +118,7 @@ func FindOne(database string, collection string, filter bson.M) (primitive.M, er
 }
 
 // FindAll Function
-func FindAll(database string, collection string, filter bson.M) ([]primitive.M, error) {
+func FindAll(database string, collection string, filter bson.M, opts options.FindOptions) ([]primitive.M, error) {
 	var results []primitive.M
 
 	SelectDatabase(database, collection)
@@ -110,7 +126,7 @@ func FindAll(database string, collection string, filter bson.M) ([]primitive.M, 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	cur, err := db.Find(ctx, filter)
+	cur, err := db.Find(ctx, filter, &opts)
 
 	if err != nil {
 		return results, err
