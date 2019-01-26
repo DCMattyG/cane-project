@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 
@@ -34,6 +35,12 @@ type JSONNode struct {
 
 func init() {
 	IgnoreSSL = true
+
+	httpProxy := os.Getenv("CANE_PROXY")
+
+	if len(httpProxy) > 0 {
+		ProxyURL = httpProxy
+	}
 }
 
 // EncodeBase64 Function
