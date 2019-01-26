@@ -117,23 +117,18 @@ func Routers() {
 		r.Patch("/api/{devicename}/{apiname}", api.UpdateAPI)
 		r.Delete("/api/{devicename}/{apiname}", api.DeleteAPI)
 
+		/* /workflow */
+		r.Get("/workflow", workflow.GetWorkflows)
+		r.Get("/workflow/{workflowname}", workflow.GetWorkflow)
+		r.Post("/workflow", workflow.CreateWorkflow)
+		// r.Patch("/workflow/{workflowname}", workflow.UpdateWorkflow)
+		r.Delete("/workflow/{workflowname}", workflow.DeleteWorkflow)
+
 		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)
 		r.Post("/parseVars", ParseVars)
-		// r.Post("/addUser", account.AddUser)
 		r.Post("/validateToken", account.ValidateUserToken)
 		r.Patch("/updateToken/{user}", account.RefreshToken)
-		// r.Post("/addDevice", account.AddDevice)
-		// r.Get("/loadDevice/{name}", account.LoadDevice)
-		// r.Patch("/updateDevice/{name}", account.UpdateDevice)
-		// r.Get("/listDevice", account.ListDevices)
-		// r.Get("/deviceApis/{device}", account.ListDeviceAPIs)
-		// r.Post("/addApi", api.AddAPI)
-		r.Post("/addWorkflow", workflow.AddWorkflow)
-		r.Get("/listWorkflow", workflow.ListWorkflows)
-		r.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
-		// r.Patch("/changePassword/{user}", account.ChangePassword)
-		r.Get("/test", TestPost)
 	})
 
 	// Dynamic Routes
@@ -223,11 +218,6 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 		util.RespondwithJSON(w, http.StatusOK, xmlAPI)
 		//util.RespondwithXML(w, http.StatusOK, x)
 	}
-}
-
-// TestPost function
-func TestPost(w http.ResponseWriter, r *http.Request) {
-	util.RespondwithJSON(w, http.StatusCreated, map[string]string{"message": "test post"})
 }
 
 // TestPath function

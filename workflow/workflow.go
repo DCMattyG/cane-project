@@ -24,8 +24,8 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
-// AddWorkflow Function
-func AddWorkflow(w http.ResponseWriter, r *http.Request) {
+// CreateWorkflow Function
+func CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 	var target model.Workflow
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&target)
@@ -48,21 +48,42 @@ func AddWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deviceID, _ := database.Save("workflows", "workflow", target)
-	target.ID = deviceID.(primitive.ObjectID)
+	_, saveErr := database.Save("workflows", "workflow", target)
 
-	fmt.Print("Inserted ID: ")
-	fmt.Println(deviceID.(primitive.ObjectID).Hex())
+	if saveErr != nil {
+		fmt.Println(saveErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error saving workflow")
+		return
+	}
 
-	foundVal, _ := database.FindOne("workflows", "workflow", filter)
+	// target.ID = deviceID.(primitive.ObjectID)
 
-	util.RespondwithJSON(w, http.StatusCreated, foundVal)
+	// foundVal, _ := database.FindOne("workflows", "workflow", filter)
+
+	util.RespondwithString(w, http.StatusCreated, "")
 }
 
-// LoadWorkflow Function
-func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
+// DeleteWorkflow Function
+func DeleteWorkflow(w http.ResponseWriter, r *http.Request) {
 	filter := primitive.M{
-		"name": chi.URLParam(r, "name"),
+		"name": chi.URLParam(r, "workflowname"),
+	}
+
+	deleteErr := database.Delete("workflows", "workflow", filter)
+
+	if deleteErr != nil {
+		fmt.Println(deleteErr)
+		util.RespondWithError(w, http.StatusBadRequest, "workflow not found")
+		return
+	}
+
+	util.RespondwithString(w, http.StatusOK, "")
+}
+
+// GetWorkflow Function
+func GetWorkflow(w http.ResponseWriter, r *http.Request) {
+	filter := primitive.M{
+		"name": chi.URLParam(r, "workflowname"),
 	}
 
 	foundVal, foundErr := database.FindOne("workflows", "workflow", filter)
@@ -76,8 +97,8 @@ func LoadWorkflow(w http.ResponseWriter, r *http.Request) {
 	util.RespondwithJSON(w, http.StatusOK, foundVal)
 }
 
-// ListWorkflows Function
-func ListWorkflows(w http.ResponseWriter, r *http.Request) {
+// GetWorkflows Function
+func GetWorkflows(w http.ResponseWriter, r *http.Request) {
 	var opts options.FindOptions
 	var workflows []string
 
