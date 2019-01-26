@@ -184,6 +184,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		step.Status = 1
 		apiResults[strconv.Itoa(i+1)] = step
 		workflowClaim.WorkflowResults = apiResults
+		workflowClaim.CurrentStatus = 1
 		workflowClaim.Save()
 
 		fmt.Println("Loading Step API...")
@@ -193,8 +194,10 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		if stepAPIErr != nil {
 			fmt.Println(stepAPIErr)
 			step.Error = stepAPIErr.Error()
+			step.Status = -1
 			apiResults[strconv.Itoa(i+1)] = step
 			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
 			// util.RespondWithError(w, http.StatusBadRequest, "error loading target API")
 			return
@@ -254,6 +257,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 					step.Status = -1
 					apiResults[strconv.Itoa(i+1)] = step
 					workflowClaim.WorkflowResults = apiResults
+					workflowClaim.CurrentStatus = -1
 					workflowClaim.Save()
 					// util.RespondWithError(w, http.StatusBadRequest, "Invalid mapping data")
 					return
@@ -270,6 +274,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 					step.Status = -1
 					apiResults[strconv.Itoa(i+1)] = step
 					workflowClaim.WorkflowResults = apiResults
+					workflowClaim.CurrentStatus = -1
 					workflowClaim.Save()
 					// util.RespondWithError(w, http.StatusBadRequest, "error mapping api variables")
 					return
@@ -288,6 +293,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			step.Status = -1
 			apiResults[strconv.Itoa(i+1)] = step
 			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
 			// util.RespondWithError(w, http.StatusBadRequest, "error executing API")
 			return
@@ -306,6 +312,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			step.Status = -1
 			apiResults[strconv.Itoa(i+1)] = step
 			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
 			// util.RespondWithError(w, http.StatusBadRequest, "error reading response body")
 			return
@@ -321,9 +328,11 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		if marshalErr != nil {
 			fmt.Println(marshalErr)
+			step.Status = -1
 			step.Error = marshalErr.Error()
 			apiResults[strconv.Itoa(i+1)] = step
 			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
 			// util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
 			return
@@ -332,6 +341,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		step.Status = 2
 		apiResults[strconv.Itoa(i+1)] = step
 		workflowClaim.WorkflowResults = apiResults
+		workflowClaim.CurrentStatus = 2
 		workflowClaim.Save()
 	}
 

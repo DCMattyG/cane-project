@@ -90,8 +90,10 @@ type Workflow struct {
 // WorkflowClaim Struct
 type WorkflowClaim struct {
 	ID              primitive.ObjectID    `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
+	Timestamp       string                `json:"timestamp" bson:"timestamp" mapstructure:"timestamp" structs:"timestamp"`
 	WorkflowResults map[string]StepResult `json:"workflowResults" bson:"workflowResults" mapstructure:"workflowResults" structs:"workflowResults"`
 	ClaimCode       string                `json:"claimCode" bson:"claimCode" mapstructure:"claimCode" structs:"claimCode"`
+	CurrentStatus   int                   `json:"currentStatus" bson:"currentStatus" mapstructure:"currentStatus" structs:"currentStatus"`
 }
 
 // Step Struct

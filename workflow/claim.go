@@ -6,6 +6,7 @@ import (
 	"cane-project/util"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/mitchellh/mapstructure"
@@ -26,6 +27,8 @@ func GenerateClaim() Claim {
 
 	claim.ClaimCode = ksuid.New().String()
 	claim.WorkflowResults = make(map[string]model.StepResult)
+	claim.Timestamp = time.Now().String()
+	claim.CurrentStatus = 0
 
 	return claim
 }
