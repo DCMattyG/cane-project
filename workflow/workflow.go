@@ -137,7 +137,7 @@ func CallWorkflow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filter := primitive.M{
-		"name": chi.URLParam(r, "name"),
+		"name": chi.URLParam(r, "workflowname"),
 	}
 
 	foundVal, foundErr := database.FindOne("workflows", "workflow", filter)
