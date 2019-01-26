@@ -4,6 +4,7 @@ import (
 	"cane-project/database"
 	"cane-project/model"
 	"cane-project/util"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,7 +23,7 @@ import (
 // CreateDevice Function
 func CreateDevice(w http.ResponseWriter, r *http.Request) {
 	var device model.DeviceAccount
-	var authErr error
+	// var authErr error
 	// var authSave map[string]interface{}
 
 	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
@@ -37,32 +38,35 @@ func CreateDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	authType := gjson.Get(target, "device.authType").String()
+	// authInfo := gjson.Get(target, "auth").Value()
 	authInfo := gjson.Get(target, "auth").Value()
 	deviceInfo := gjson.Get(target, "device").Value()
 
-	switch authType {
-	case "none":
-		authInfo = primitive.M{}
-	case "basic":
-		var basicAuth model.BasicAuth
-		authErr = mapstructure.Decode(authInfo, &basicAuth)
-	case "session":
-		var sessionAuth model.SessionAuth
-		authErr = mapstructure.Decode(authInfo, &sessionAuth)
-	case "apikey":
-		var apiKeyAuth model.APIKeyAuth
-		authErr = mapstructure.Decode(authInfo, &apiKeyAuth)
-	case "rfc3447":
-		var rfc3447Auth model.BasicAuth
-		authErr = mapstructure.Decode(authInfo, &rfc3447Auth)
-	default:
-		util.RespondWithError(w, http.StatusBadRequest, "invalid auth type")
-		return
-	}
+	// switch authType {
+	// case "none":
+	// 	authInfo = primitive.M{}
+	// case "basic":
+	// 	var basicAuth model.BasicAuth
+	// 	authErr = mapstructure.Decode(authInfo, &basicAuth)
+	// case "session":
+	// 	var sessionAuth model.SessionAuth
+	// 	authErr = mapstructure.Decode(authInfo, &sessionAuth)
+	// case "apikey":
+	// 	var apiKeyAuth model.APIKeyAuth
+	// 	authErr = mapstructure.Decode(authInfo, &apiKeyAuth)
+	// case "rfc3447":
+	// 	var rfc3447Auth model.BasicAuth
+	// 	authErr = mapstructure.Decode(authInfo, &rfc3447Auth)
+	// default:
+	// 	util.RespondWithError(w, http.StatusBadRequest, "invalid auth type")
+	// 	return
+	// }
 
-	if authErr != nil {
+	authValid, authErr := ValidateAuth(authType, authInfo.(map[string]interface{}))
+
+	if !authValid {
 		fmt.Println(authErr)
-		util.RespondWithError(w, http.StatusBadRequest, "invalid auth details")
+		util.RespondWithError(w, http.StatusBadRequest, authErr.Error())
 		return
 	}
 
@@ -291,37 +295,113 @@ func DeleteDevice(w http.ResponseWriter, r *http.Request) {
 	util.RespondwithString(w, http.StatusOK, "")
 }
 
-// ValidateAuthObj
-// func ValidateAuthObj(authObj map[string]interface{}) (string, map[string]interface{}) {
-// 	var authErr error
-// 	var authObj map[string]interface{}
+// ValidateAuth Function
+func ValidateAuth(authType string, authObj map[string]interface{}) (bool, error) {
+	var value interface{}
+	var ok bool
 
-// 	authType := gjson.Get(authInfo, "device.authtype").String()
+	switch authType {
+	case "none":
+		if len(authObj) != 0 {
+			return false, errors.New("authbody provided with authtype of none")
+		}
+	case "basic":
+		if len(authObj) != 2 {
+			return false, errors.New("invalid number of keys in auth body")
+		}
 
-// 	switch authType {
-// 	case "none":
-// 		authInfo = make(map[string]interface{})
-// 	case "basic":
-// 		var basicAuth model.BasicAuth
-// 		authErr = mapstructure.Decode(authInfo, &basicAuth)
-// 		authObj = structs.Map(basicAuth)
-// 	case "session":
-// 		var sessionAuth model.SessionAuth
-// 		authErr = mapstructure.Decode(authInfo, &sessionAuth)
-// 		authObj = structs.Map(sessionAuth)
-// 	case "apikey":
-// 		var apiKeyAuth model.APIKeyAuth
-// 		authErr = mapstructure.Decode(authInfo, &apiKeyAuth)
-// 		authObj = structs.Map(apiKeyAuth)
-// 	case "rfc3447":
-// 		var rfc3447Auth model.BasicAuth
-// 		authErr = mapstructure.Decode(authInfo, &rfc3447Auth)
-// 		authObj = structs.Map(rfc3447Auth)
-// 	default:
-// 		util.RespondWithError(w, http.StatusBadRequest, "invalid auth type")
-// 		return nil, nil
-// 	}
-// }
+		value, ok = authObj["username"]
+		if !ok {
+			return false, errors.New("auth is missing username field")
+		} else if value == nil {
+			return false, errors.New("username cannot be empty")
+		}
+
+		value, ok = authObj["password"]
+		if !ok {
+			return false, errors.New("auth is missing password field")
+		} else if value == nil {
+			return false, errors.New("password cannot be empty")
+		}
+	case "session":
+		if len(authObj) != 5 {
+			return false, errors.New("invalid number of keys in auth body")
+		}
+
+		value, ok = authObj["username"]
+		if !ok {
+			return false, errors.New("auth is missing username field")
+		} else if value == nil {
+			return false, errors.New("username cannot be empty")
+		}
+
+		value, ok = authObj["password"]
+		if !ok {
+			return false, errors.New("auth is missing password field")
+		} else if value == nil {
+			return false, errors.New("username cannot be empty")
+		}
+
+		value, ok = authObj["authBody"]
+		if !ok {
+			return false, errors.New("auth is missing authBody field")
+		} else if value == nil {
+			return false, errors.New("authbody cannot be empty")
+		}
+
+		value, ok = authObj["authBodyMap"]
+		if !ok {
+			return false, errors.New("auth is missing authBodyMap field")
+		} else if value == nil {
+			return false, errors.New("authbodymap cannot be empty")
+		}
+
+		value, ok = authObj["cookieLifetime"]
+		if !ok {
+			return false, errors.New("auth is missing cookieLifetime field")
+		}
+	case "apikey":
+		if len(authObj) != 2 {
+			return false, errors.New("invalid number of keys in auth body")
+		}
+
+		value, ok = authObj["header"]
+		if !ok {
+			return false, errors.New("auth is missing header field")
+		} else if value == nil {
+			return false, errors.New("header cannot be empty")
+		}
+
+		value, ok = authObj["key"]
+		if !ok {
+			return false, errors.New("auth is missing key field")
+		} else if value == nil {
+			return false, errors.New("key cannot be empty")
+		}
+	case "rfc3447":
+		if len(authObj) != 2 {
+			return false, errors.New("invalid number of keys in auth body")
+		}
+
+		value, ok = authObj["publicKey"]
+		if !ok {
+			return false, errors.New("auth is missing publicKey field")
+		} else if value == nil {
+			return false, errors.New("publickey cannot be empty")
+		}
+
+		value, ok = authObj["privateKey"]
+		if !ok {
+			return false, errors.New("auth is missing privateKey field")
+		} else if value == nil {
+			return false, errors.New("privatekey cannot be empty")
+		}
+	default:
+		return false, errors.New("invalid auth type")
+	}
+
+	return true, nil
+}
 
 // GetDevice Function
 func GetDevice(w http.ResponseWriter, r *http.Request) {

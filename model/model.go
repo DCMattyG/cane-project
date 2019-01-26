@@ -83,7 +83,7 @@ type Workflow struct {
 	Description string             `json:"description" bson:"description" mapstructure:"description" structs:"description"`
 	Type        string             `json:"type" bson:"type" mapstructure:"type" structs:"type"`
 	Steps       []Step             `json:"steps" bson:"steps" mapstructure:"steps" structs:"steps"`
-	ClaimCode   int                `json:"claimCode" bson:"claimCode" mapstructure:"claimCode" structs:"claimCode"`
+	// ClaimCode   int                `json:"claimCode" bson:"claimCode" mapstructure:"claimCode" structs:"claimCode"`
 	// Note, add OutputMap []map[string]string
 }
 

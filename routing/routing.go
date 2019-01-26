@@ -1,7 +1,6 @@
 package routing
 
 import (
-	"bytes"
 	"cane-project/account"
 	"cane-project/api"
 	"cane-project/database"
@@ -10,7 +9,6 @@ import (
 	"cane-project/util"
 	"cane-project/workflow"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -61,29 +59,12 @@ func Routers() {
 
 	// Public Default Routes
 	Router.Post("/login", account.Login)
-	// Router.Post("/addRoute", AddRoutes)
-	// Router.Post("/parseVars", ParseVars)
-	// Router.Post("/addUser", account.AddUser)
-	// Router.Post("/validateToken", account.ValidateUserToken)
-	// Router.Patch("/updateToken/{user}", account.RefreshToken)
-	// Router.Post("/addDevice", account.AddDevice)
-	// Router.Get("/loadDevice/{name}", account.LoadDevice)
-	// Router.Patch("/updateDevice/{name}", account.UpdateDevice)
-	// Router.Get("/listDevice", account.ListDevices)
-	// Router.Get("/deviceApis/{device}", account.ListDeviceAPIs)
-	// Router.Post("/addApi", api.AddAPI)
 	Router.Post("/apiTest", TestCallAPI)
 	Router.Get("/testPath/*", TestPath)
 	Router.Post("/testJSON", JSONTest)
 	Router.Post("/testXML", XMLTest)
 	Router.Post("/testGJSON", TestGJSON)
-	// Router.Post("/testAPIAuth", TestAPIAuth)
-	// Router.Post("/addWorkflow", workflow.AddWorkflow)
-	// Router.Get("/listWorkflow", workflow.ListWorkflows)
-	// Router.Get("/listWorkflow/{name}", workflow.LoadWorkflow)
 	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
-	// Router.Get("/claimTest", ClaimTest)
-	// Router.Get("/loadClaim/{claim}", workflow.LoadClaim)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -167,60 +148,52 @@ func Routers() {
 
 // ParseVars function
 func ParseVars(w http.ResponseWriter, r *http.Request) {
-	bodyReader, err := ioutil.ReadAll(r.Body)
+	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
 
 	// fmt.Println(string(bodyReader))
 
-	if err != nil {
-		fmt.Println(err)
+	if bodyErr != nil {
+		fmt.Println(bodyErr)
 		util.RespondWithError(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	if model.IsJSON(string(bodyReader)) {
-		var j model.JSONNode
+	if model.IsJSON(string(bodyBytes)) {
+		var input map[string]interface{}
 
-		jsonErr := json.Unmarshal(bodyReader, &j)
+		json.Unmarshal(bodyBytes, &input)
 
-		if jsonErr != nil {
-			fmt.Println(jsonErr)
-			util.RespondWithError(w, http.StatusBadRequest, "invalid json")
-			return
-		}
+		fixed := model.JSONNode(input).StripJSON()
 
-		j.JSONVars()
-
-		jsonAPI := map[string]string{
-			"parsedAPI": j.Marshal(),
-			"type":      "json",
-		}
-
-		util.RespondwithJSON(w, http.StatusOK, jsonAPI)
+		util.RespondwithJSON(w, http.StatusCreated, fixed)
 	}
 
-	if model.IsXML(string(bodyReader)) {
-		var x model.XMLNode
-
-		buf := bytes.NewBuffer(bodyReader)
-		dec := xml.NewDecoder(buf)
-		xmlErr := dec.Decode(&x)
+	if model.IsXML(string(bodyBytes)) {
+		x, xmlErr := model.XMLfromBytes(bodyBytes)
 
 		if xmlErr != nil {
 			fmt.Println(xmlErr)
 			util.RespondWithError(w, http.StatusBadRequest, "invalid xml")
-			return
 		}
 
-		x.ScrubXML()
-		// x.XMLVars()
+		mapString := x.XMLtoJSON()
 
-		xmlAPI := map[string]string{
-			"parsedAPI": x.Marshal(),
-			"type":      "xml",
+		fixed := model.JSONNode(mapString).StripJSON()
+
+		jBytes, _ := json.MarshalIndent(fixed, "", "  ")
+
+		// jString := string(jBytes)
+
+		j, jsonErr := model.JSONfromBytes(jBytes)
+
+		if jsonErr != nil {
+			fmt.Println(jsonErr)
+			util.RespondWithError(w, http.StatusBadRequest, "invalid json")
 		}
 
-		util.RespondwithJSON(w, http.StatusOK, xmlAPI)
-		//util.RespondwithXML(w, http.StatusOK, x)
+		fixedXML := j.ToXML()
+
+		util.RespondwithJSON(w, http.StatusCreated, fixedXML)
 	}
 }
 
@@ -339,23 +312,18 @@ func TestCallAPI(w http.ResponseWriter, r *http.Request) {
 
 // JSONTest Function
 func JSONTest(w http.ResponseWriter, r *http.Request) {
-	test := map[string]interface{}{
-		"results": []map[string]interface{}{
-			{
-				"moid": "65f345ff345sss24dd",
-				"type": "compute",
-				"tags": []string{"hot", "cold"},
-				"parent": map[string]interface{}{
-					"moid": "43r34r4h743834",
-					"obj":  "chassis",
-				},
-			},
-		},
+	var input map[string]interface{}
+
+	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
+
+	if bodyErr != nil {
+		fmt.Println(bodyErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error ready body")
 	}
 
-	fixed := model.JSONNode(test).StripJSON()
+	json.Unmarshal(bodyBytes, &input)
 
-	// model.JSONNode(test).StripJSON()
+	fixed := model.JSONNode(input).StripJSON()
 
 	util.RespondwithJSON(w, http.StatusCreated, fixed)
 }
