@@ -110,6 +110,13 @@ func Routers() {
 		r.Patch("/device/{devicename}", account.UpdateDevice)
 		r.Delete("/device/{devicename}", account.DeleteDevice)
 
+		/* /api */
+		r.Get("/api/{devicename}", api.GetAPIs)
+		r.Get("/api/{devicename}/{apiname}", api.GetAPI)
+		r.Post("/api", api.CreateAPI)
+		r.Patch("/api/{devicename}/{apiname}", api.UpdateAPI)
+		r.Delete("/api/{devicename}/{apiname}", api.DeleteAPI)
+
 		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)
 		r.Post("/parseVars", ParseVars)
@@ -120,8 +127,8 @@ func Routers() {
 		// r.Get("/loadDevice/{name}", account.LoadDevice)
 		// r.Patch("/updateDevice/{name}", account.UpdateDevice)
 		// r.Get("/listDevice", account.ListDevices)
-		r.Get("/deviceApis/{device}", account.ListDeviceAPIs)
-		r.Post("/addApi", api.AddAPI)
+		// r.Get("/deviceApis/{device}", account.ListDeviceAPIs)
+		// r.Post("/addApi", api.AddAPI)
 		r.Post("/addWorkflow", workflow.AddWorkflow)
 		r.Get("/listWorkflow", workflow.ListWorkflows)
 		r.Get("/listWorkflow/{name}", workflow.LoadWorkflow)

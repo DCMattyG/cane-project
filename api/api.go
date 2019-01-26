@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/fatih/structs"
 	"github.com/go-chi/chi"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"github.com/mongodb/mongo-go-driver/mongo/options"
 )
 
 // APITypes Variable
@@ -27,8 +29,8 @@ func init() {
 	}
 }
 
-// AddAPI Function
-func AddAPI(w http.ResponseWriter, r *http.Request) {
+// CreateAPI Function
+func CreateAPI(w http.ResponseWriter, r *http.Request) {
 	var api model.API
 
 	json.NewDecoder(r.Body).Decode(&api)
@@ -57,7 +59,7 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saveID, saveErr := database.Save("apis", api.DeviceAccount, api)
+	_, saveErr := database.Save("apis", api.DeviceAccount, api)
 
 	if saveErr != nil {
 		fmt.Println(saveErr)
@@ -65,14 +67,95 @@ func AddAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.ID = saveID.(primitive.ObjectID)
+	// api.ID = saveID.(primitive.ObjectID)
 
-	fmt.Print("Inserted ID: ")
-	fmt.Println(saveID.(primitive.ObjectID).Hex())
+	// foundVal, _ := database.FindOne("apis", api.DeviceAccount, existFilter)
 
-	foundVal, _ := database.FindOne("apis", api.DeviceAccount, existFilter)
+	util.RespondwithString(w, http.StatusCreated, "")
+}
 
-	util.RespondwithJSON(w, http.StatusCreated, foundVal)
+// UpdateAPI Function
+func UpdateAPI(w http.ResponseWriter, r *http.Request) {
+	var originalAPI model.API
+	var patchAPI map[string]interface{}
+
+	apiAccount := chi.URLParam(r, "devicename")
+	apiName := chi.URLParam(r, "apiname")
+
+	json.NewDecoder(r.Body).Decode(&patchAPI)
+
+	accountFilter := primitive.M{
+		"name": apiAccount,
+	}
+
+	_, accountErr := database.FindOne("accounts", "devices", accountFilter)
+
+	if accountErr != nil {
+		fmt.Println(accountErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no such account")
+		return
+	}
+
+	loadFilter := primitive.M{
+		"name": apiName,
+	}
+
+	loadVal, loadErr := database.FindOne("apis", apiAccount, loadFilter)
+
+	if loadErr != nil {
+		fmt.Println(loadErr)
+		util.RespondWithError(w, http.StatusBadRequest, "no such api")
+		return
+	}
+
+	mapstructure.Decode(loadVal, &originalAPI)
+
+	originalAPI.Method = patchAPI["method"].(string)
+	originalAPI.URL = patchAPI["url"].(string)
+	originalAPI.Body = patchAPI["body"].(string)
+	originalAPI.Type = patchAPI["type"].(string)
+
+	updatedAPI := structs.Map(originalAPI)
+
+	delete(updatedAPI, "ID")
+
+	_, saveErr := database.FindAndReplace("apis", apiAccount, loadFilter, updatedAPI)
+
+	if saveErr != nil {
+		fmt.Println(saveErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error saving api")
+		return
+	}
+
+	util.RespondwithString(w, http.StatusOK, "")
+}
+
+// DeleteAPI Function
+func DeleteAPI(w http.ResponseWriter, r *http.Request) {
+	apiAccount := chi.URLParam(r, "devicename")
+	apiName := chi.URLParam(r, "apiname")
+
+	filter := primitive.M{
+		"name": apiName,
+	}
+
+	_, findErr := database.FindOne("apis", apiAccount, filter)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "api not found")
+		return
+	}
+
+	deleteErr := database.Delete("apis", apiAccount, filter)
+
+	if deleteErr != nil {
+		fmt.Println(deleteErr)
+		util.RespondWithError(w, http.StatusBadRequest, "api not found")
+		return
+	}
+
+	util.RespondwithString(w, http.StatusOK, "")
 }
 
 // LoadAPI Function
@@ -189,4 +272,56 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+// GetAPI Function
+func GetAPI(w http.ResponseWriter, r *http.Request) {
+	var returnAPI model.API
+
+	device := chi.URLParam(r, "devicename")
+	api := chi.URLParam(r, "apiname")
+
+	filter := primitive.M{
+		"name": api,
+	}
+
+	findVal, findErr := database.FindOne("apis", device, filter)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "api not found")
+		return
+	}
+
+	mapstructure.Decode(findVal, &returnAPI)
+
+	util.RespondwithJSON(w, http.StatusOK, returnAPI)
+}
+
+// GetAPIs Function
+func GetAPIs(w http.ResponseWriter, r *http.Request) {
+	var opts options.FindOptions
+	device := chi.URLParam(r, "devicename")
+
+	var apis []string
+
+	findVal, findErr := database.FindAll("apis", device, primitive.M{}, opts)
+
+	if findErr != nil {
+		fmt.Println(findErr)
+		util.RespondWithError(w, http.StatusBadRequest, "device not found")
+		return
+	}
+
+	for key := range findVal {
+		apis = append(apis, findVal[key]["name"].(string))
+	}
+
+	if apis == nil {
+		fmt.Println("invalid device or no apis")
+		util.RespondWithError(w, http.StatusBadRequest, "invalid account or no apis")
+		return
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"apis": apis})
 }

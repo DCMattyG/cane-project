@@ -492,25 +492,3 @@ func GetDeviceFromDB(deviceName string) (model.DeviceAccount, error) {
 
 	return device, nil
 }
-
-// ListDeviceAPIs Function
-func ListDeviceAPIs(w http.ResponseWriter, r *http.Request) {
-	var opts options.FindOptions
-	device := chi.URLParam(r, "device")
-
-	var apis []string
-
-	findVal, findErr := database.FindAll("apis", device, primitive.M{}, opts)
-
-	if findErr != nil {
-		fmt.Println(findErr)
-		util.RespondWithError(w, http.StatusBadRequest, "device not found")
-		return
-	}
-
-	for key := range findVal {
-		apis = append(apis, findVal[key]["name"].(string))
-	}
-
-	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"apis": apis})
-}
