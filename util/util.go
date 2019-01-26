@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 	"os"
 	"reflect"
@@ -39,6 +40,7 @@ func init() {
 	httpProxy := os.Getenv("CANE_PROXY")
 
 	if len(httpProxy) > 0 {
+		fmt.Println("Setting Proxy: ", httpProxy)
 		ProxyURL = httpProxy
 	}
 }

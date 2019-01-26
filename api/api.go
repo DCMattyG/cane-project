@@ -211,7 +211,7 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 
 	proxyURL, err := url.Parse(util.ProxyURL)
 	if err != nil {
-		fmt.Println("Invalid proxy URL format!")
+		fmt.Println("Invalid proxy URL format: ", util.ProxyURL)
 	}
 
 	if util.IgnoreSSL {
