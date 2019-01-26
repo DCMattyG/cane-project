@@ -1,0 +1,51 @@
+
+		<div class="content" style="height:100%">
+                    <div class="container">
+                        <div class="section">
+			    <div class="panel panel--bordered panel--bordered">
+				
+							<table class="table table--wrap table--nostripes" ng-repeat="(key, job) in jobsObject">
+								<tr>
+									<td width="35%"> <a ng-click="showDetails = !showDetails" >{{ key }}</a> </td>
+									<td width="35%">{{job.timestampHuman}}</td>
+									<td width="30%">
+										<span ng-if="job.currentStatus == '-1'">Failed</span>
+										<span ng-if="job.currentStatus == '0'">Waiting</span>
+										<span ng-if="job.currentStatus == '1'"><img src="spinner.gif"></span>
+										<span ng-if="job.currentStatus == '2'">Finished</span>
+									</td>
+								</tr>
+								<tr ng-show="showDetails">
+									<td colspan="3">
+										<table class="table table--wrap table--compressed">
+											<tr>
+												<th width="10%">Step</th>
+												<th width="10%">API</th>
+												<th width="10%">Status</th>
+												<th width="70%">Response</th>
+											</tr>
+											<tr ng-repeat="(stepNum, step) in job.workflowResults">
+												<td>{{stepNum}}</td>
+												<td>{{ step.apiCall }}</td>
+												<td>
+													<span ng-if="step.status == '-1'">Failed</span>
+													<span ng-if="step.status == '0'">Waiting</span>
+													<span ng-if="step.status == '1'"><img src="spinner.gif"></span>
+													<span ng-if="step.status == '2'">Success</span>
+												</td>
+												<td>
+													<span ng-bind="step.resBody"></span>
+													<div class="text-danger" ng-bind="step.error"></div>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
