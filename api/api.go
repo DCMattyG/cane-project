@@ -218,21 +218,21 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		fmt.Println("Invalid proxy URL format: ", util.ProxyURL)
 	}
 
-	if util.IgnoreSSL {
-		transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-	}
+	// if util.IgnoreSSL {
+	// 	transport = &http.Transport{
+	// 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	// 	}
+	// }
 
 	// Add proxy settings to the HTTP Transport object
-	if len(proxyURL.String()) > 0 {
-		transport.Proxy = http.ProxyURL(proxyURL)
-	}
+	// if len(proxyURL.String()) > 0 {
+	// 	transport.Proxy = http.ProxyURL(proxyURL)
+	// }
 
-	client = &http.Client{
-		Transport: transport,
-		Timeout:   30 * time.Second,
-	}
+	// client = &http.Client{
+	// 	Transport: transport,
+	// 	Timeout:   30 * time.Second,
+	// }
 
 	deviceFilter := primitive.M{
 		"name": targetAPI.DeviceAccount,
@@ -270,6 +270,23 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		fmt.Println("Error getting request for CallAPI")
 		fmt.Println(reqErr)
 		return nil, errors.New("error creating api request")
+	}
+
+	// Ignore self-sgned SSL certificates if set globally
+	if util.IgnoreSSL {
+		transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
+	// Add proxy settings to the HTTP Transport object
+	if targetDevice.RequireProxy {
+		transport.Proxy = http.ProxyURL(proxyURL)
+	}
+
+	client = &http.Client{
+		Transport: transport,
+		Timeout:   30 * time.Second,
 	}
 
 	resp, respErr := client.Do(req)
