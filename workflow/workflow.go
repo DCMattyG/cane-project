@@ -330,20 +330,20 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		step.ResBody = string(respBody)
 
-		bodyObject := make(map[string]interface{})
-		marshalErr := json.Unmarshal(respBody, &bodyObject)
+		// bodyObject := make(map[string]interface{})
+		// marshalErr := json.Unmarshal(respBody, &bodyObject)
 
-		if marshalErr != nil {
-			fmt.Println(marshalErr)
-			step.Status = -1
-			step.Error = marshalErr.Error()
-			apiResults[strconv.Itoa(i+1)] = step
-			workflowClaim.WorkflowResults = apiResults
-			workflowClaim.CurrentStatus = -1
-			workflowClaim.Save()
-			// util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
-			return
-		}
+		// if marshalErr != nil {
+		// 	fmt.Println(marshalErr)
+		// 	step.Status = -1
+		// 	step.Error = marshalErr.Error()
+		// 	apiResults[strconv.Itoa(i+1)] = step
+		// 	workflowClaim.WorkflowResults = apiResults
+		// 	workflowClaim.CurrentStatus = -1
+		// 	workflowClaim.Save()
+		// 	// util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
+		// 	return
+		// }
 
 		step.Status = 2
 		apiResults[strconv.Itoa(i+1)] = step
