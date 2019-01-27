@@ -222,6 +222,8 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		}
 	}
 
+	fmt.Println("proxyURL.RawPath:", proxyURL.RawPath)
+
 	// Add proxy settings to the HTTP Transport object
 	if len(proxyURL.RawPath) > 0 {
 		fmt.Println("Adding Proxy:", proxyURL)
