@@ -68,7 +68,12 @@ func APIKeyAuth(api model.API) (*http.Request, error) {
 	fmt.Println("APIKEY: ", apiKey)
 
 	// Append headers to HTTP request
-	req.Header.Add(apiHeader, apiKey)
+	if apiHeader != "" {
+		req.Header.Add(apiHeader, apiKey)
+	} else {
+		bearerToken := "Bearer " + apiKey
+		req.Header.Add("Authorization", bearerToken)
+	}
 
 	return req, nil
 }
