@@ -209,6 +209,8 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	var req *http.Request
 	var reqErr error
 
+	fmt.Println("ProxyURL from UTIL:", util.ProxyURL)
+
 	proxyURL, err := url.Parse(util.ProxyURL)
 	if err != nil {
 		fmt.Println("Invalid proxy URL format: ", util.ProxyURL)
