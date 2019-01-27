@@ -267,8 +267,8 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	}
 
 	if reqErr != nil {
-		fmt.Println(reqErr)
 		fmt.Println("Error getting request for CallAPI")
+		fmt.Println(reqErr)
 		return nil, errors.New("error creating api request")
 	}
 
@@ -276,6 +276,7 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 
 	if respErr != nil {
 		fmt.Println("Errored when sending request to the server!")
+		fmt.Println(respErr)
 		return nil, errors.New("error calling api")
 	}
 

@@ -408,21 +408,23 @@ func XMLTest(w http.ResponseWriter, r *http.Request) {
 
 // TestGJSON Function
 func TestGJSON(w http.ResponseWriter, r *http.Request) {
-	var output map[string]interface{}
+	// var output map[string]interface{}
 
 	// json := `{"name":{"first":"Janet","last":"Prichard"},"age":47}`
 
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	bodyString := string(bodyBytes)
 
-	grab := "cuicoperationRequest.payload.cdata.ucsUuidPool.accountName"
+	// grab := "cuicoperationRequest.payload.cdata.ucsUuidPool.accountName"
+	grab := "details.@location"
+
 	value := gjson.Get(bodyString, grab)
 
 	gJSON := value.String()
 
-	json.Unmarshal([]byte(gJSON), &output)
+	// json.Unmarshal([]byte(gJSON), &output)
 
-	util.RespondwithJSON(w, http.StatusCreated, output)
+	util.RespondwithJSON(w, http.StatusCreated, map[string]interface{}{"value": gJSON})
 }
 
 // ClaimTest Function
