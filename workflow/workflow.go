@@ -253,6 +253,10 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 						fmt.Println("Unidentified Kind: ", dataKind)
 					}
 				} else {
+					fmt.Println("Mapping Error!")
+					fmt.Println("Step Body:")
+					fmt.Println(stepAPI.Body)
+					fmt.Println("Map Value:", val)
 					step.Error = "Invalid mapping data"
 					step.Status = -1
 					apiResults[strconv.Itoa(i+1)] = step
