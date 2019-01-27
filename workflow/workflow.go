@@ -206,8 +206,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		step.APICall = stepAPI.Name
 		step.APIAccount = stepAPI.DeviceAccount
 
-		stepAPI.Body = strings.Replace(stepAPI.Body, "\\", "", -1)
-
 		fmt.Println("Beginning VarMap Loop...")
 
 		// For each Variable Map in "VARMAP"
@@ -232,6 +230,8 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 				}
 
 				var typedData interface{}
+
+				stepAPI.Body = strings.Replace(stepAPI.Body, "\\", "", -1)
 
 				fmt.Println("Determining TypeData...")
 				fmt.Println("GJSON Results: ", gjson.Get(stepAPI.Body, val))
@@ -258,8 +258,9 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 					fmt.Println("Mapping Error!")
 					fmt.Println("Step Body:")
 					fmt.Println(stepAPI.Body)
-					fmt.Println("Map Value:", val)
-					step.Error = "Invalid mapping data"
+					output := fmt.Sprintf("Map Value [%s]", val)
+					fmt.Println(output)
+					step.Error = "Invalid mapping data, target value does not exist"
 					step.Status = -1
 					apiResults[strconv.Itoa(i+1)] = step
 					workflowClaim.WorkflowResults = apiResults
