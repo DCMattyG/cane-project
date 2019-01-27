@@ -59,12 +59,12 @@ func Routers() {
 
 	// Public Default Routes
 	Router.Post("/login", account.Login)
-	Router.Post("/apiTest", TestCallAPI)
+	// Router.Post("/apiTest", TestCallAPI)
 	// Router.Get("/testPath/*", TestPath)
 	Router.Post("/testJSON", JSONTest)
 	Router.Post("/testXML", XMLTest)
 	Router.Post("/testGJSON", TestGJSON)
-	Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
+	// Router.Get("/loadAPI/{account}/{name}", api.LoadAPI)
 
 	// Private Default Routes
 	Router.Group(func(r chi.Router) {
@@ -111,14 +111,14 @@ func Routers() {
 		r.Get("/claim/{claimcode}", workflow.GetClaim)
 
 		/* Dynamic Paths for Pass-Through & Workflow */
-		r.HandleFunc("/{devicename}/*", TestPath)
+		r.HandleFunc("/{devicename}/*", PassThroughAPI)
 		// r.Get("/testPath/*", TestPath)
 
 		/* Old Routes (Testing) */
-		r.Post("/addRoute", AddRoutes)
+		// r.Post("/addRoute", AddRoutes)
 		r.Post("/parseVars", ParseVars)
-		r.Post("/validateToken", account.ValidateUserToken)
-		r.Patch("/updateToken/{user}", account.RefreshToken)
+		// r.Post("/validateToken", account.ValidateUserToken)
+		// r.Patch("/updateToken/{user}", account.RefreshToken)
 	})
 
 	// Dynamic Routes
@@ -202,8 +202,8 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TestPath function
-func TestPath(w http.ResponseWriter, r *http.Request) {
+// PassThroughAPI function
+func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 	var newAPI model.API
 
 	uri := chi.URLParam(r, "*")
@@ -223,17 +223,14 @@ func TestPath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// mapResponse := map[string]string{
-	// 	"method":      routeMethod,
-	// 	"uri":         uri,
-	// 	"routePatten": routePattern,
-	// 	"account":     account,
-	// 	"device":      device,
-	// }
-
 	newAPI.DeviceAccount = device
 	newAPI.Method = routeMethod
-	newAPI.URL = "/" + uri
+
+	if len(uri) > 0 {
+		newAPI.URL += "/"
+	}
+
+	newAPI.URL += uri
 	newAPI.Body = bodyString
 
 	if model.IsJSON(bodyString) {
@@ -244,7 +241,21 @@ func TestPath(w http.ResponseWriter, r *http.Request) {
 		newAPI.Type = "error"
 	}
 
-	util.RespondwithJSON(w, http.StatusOK, newAPI)
+	resp, err := api.CallAPI(newAPI)
+
+	if err != nil {
+		util.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	defer resp.Body.Close()
+
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	bodyObject := make(map[string]interface{})
+
+	json.Unmarshal(respBody, &bodyObject)
+
+	util.RespondwithJSON(w, resp.StatusCode, bodyObject)
 }
 
 // AddRoutes function

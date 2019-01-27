@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -71,4 +72,17 @@ func SessionAuth(api model.API) (*http.Request, error) {
 	req.Header.Add(apiHeader, apiKey)
 
 	return req, nil
+}
+
+// SessionTimer Function
+func SessionTimer(accountName string, cookieTime time.Duration, cookieToken string) {
+	session := map[string]interface{}{
+		"deviceName":   accountName,
+		"cookieExpire": time.Now().Add(cookieTime * time.Second),
+		"token":        cookieToken,
+	}
+
+	saveID, _ := database.Save("session", "sessions", session)
+
+	fmt.Println(saveID)
 }

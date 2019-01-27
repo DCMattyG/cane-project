@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
@@ -51,8 +53,21 @@ func logger() http.Handler {
 	})
 }
 
+func cleanup() {
+	fmt.Println()
+	fmt.Println("Cleaning up...")
+}
+
 // Main Function
 func main() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cleanup()
+		os.Exit(1)
+	}()
+
 	canePort := ":"
 	httpPort := os.Getenv("CANE_PORT")
 

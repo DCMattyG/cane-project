@@ -239,7 +239,7 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	if deviceDBErr != nil {
 		fmt.Println(deviceDBErr)
 		fmt.Println("Error loading device for CallAPI")
-		return nil, deviceDBErr
+		return nil, errors.New("error accessing database")
 	}
 
 	deviceDecodeErr := mapstructure.Decode(deviceResult, &targetDevice)
@@ -247,7 +247,7 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	if deviceDecodeErr != nil {
 		fmt.Println(deviceDecodeErr)
 		fmt.Println("Error decoding device for CallAPI")
-		return nil, deviceDecodeErr
+		return nil, errors.New("invalid device account")
 	}
 
 	switch targetDevice.AuthType {
@@ -259,20 +259,20 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		req, reqErr = auth.APIKeyAuth(targetAPI)
 	default:
 		fmt.Println("Invalid AuthType!")
-		return nil, errors.New("Invalid AuthType")
+		return nil, errors.New("invalid authtype")
 	}
 
 	if reqErr != nil {
 		fmt.Println(reqErr)
 		fmt.Println("Error getting request for CallAPI")
-		return nil, reqErr
+		return nil, errors.New("error creating api request")
 	}
 
 	resp, respErr := client.Do(req)
 
 	if respErr != nil {
 		fmt.Println("Errored when sending request to the server!")
-		return nil, respErr
+		return nil, errors.New("error calling api")
 	}
 
 	return resp, nil
