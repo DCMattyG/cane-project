@@ -66,7 +66,7 @@ func APIKeyAuth(api model.API) (*http.Request, error) {
 
 	// Append headers to HTTP request
 	if apiHeader != "" {
-		header := fmt.Sprintf("HEADER: %s: %s", apiHeader, apiKey)
+		header := fmt.Sprintf("HEADER--> %s: %s", apiHeader, apiKey)
 		fmt.Println(header)
 		req.Header.Add(apiHeader, apiKey)
 	} else {
