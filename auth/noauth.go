@@ -27,7 +27,7 @@ func NoAuth(api model.API) (*http.Request, error) {
 
 	targetMethod := strings.ToUpper(api.Method)
 
-	targetURL := host.Scheme + "://" + host.Hostname() + api.URL
+	targetURL := host.Scheme + "://" + host.String() + api.URL
 
 	// Create HTTP request
 	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(""))

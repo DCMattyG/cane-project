@@ -37,7 +37,7 @@ func SessionAuth(api model.API) (*http.Request, error) {
 
 	fmt.Println("METHOD: ", targetMethod)
 
-	targetURL := host.Scheme + "://" + host.Hostname() + api.URL
+	targetURL := host.Scheme + "://" + host.String() + api.URL
 
 	fmt.Println("TARGETURL: ", targetURL)
 
