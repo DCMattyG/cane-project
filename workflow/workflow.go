@@ -231,7 +231,13 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 				var typedData interface{}
 
+				stepAPI.Body = strings.Replace(stepAPI.Body, "\n", "", -1)
+				stepAPI.Body = strings.Replace(stepAPI.Body, "\t", "", -1)
+				stepAPI.Body = strings.Replace(stepAPI.Body, "\r", "", -1)
 				stepAPI.Body = strings.Replace(stepAPI.Body, "\\", "", -1)
+
+				fmt.Println("STRIPPED API BODY:")
+				fmt.Println(stepAPI.Body)
 
 				fmt.Println("Determining TypeData...")
 				fmt.Println("GJSON Results: ", gjson.Get(stepAPI.Body, val))
