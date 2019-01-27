@@ -60,7 +60,7 @@ func Routers() {
 	// Public Default Routes
 	Router.Post("/login", account.Login)
 	Router.Post("/apiTest", TestCallAPI)
-	Router.Get("/testPath/*", TestPath)
+	// Router.Get("/testPath/*", TestPath)
 	Router.Post("/testJSON", JSONTest)
 	Router.Post("/testXML", XMLTest)
 	Router.Post("/testGJSON", TestGJSON)
@@ -109,6 +109,10 @@ func Routers() {
 		/* /claim */
 		r.Get("/claim", workflow.GetClaims)
 		r.Get("/claim/{claimcode}", workflow.GetClaim)
+
+		/* Dynamic Paths for Pass-Through & Workflow */
+		r.HandleFunc("/{devicename}/*", TestPath)
+		// r.Get("/testPath/*", TestPath)
 
 		/* Old Routes (Testing) */
 		r.Post("/addRoute", AddRoutes)
@@ -200,20 +204,47 @@ func ParseVars(w http.ResponseWriter, r *http.Request) {
 
 // TestPath function
 func TestPath(w http.ResponseWriter, r *http.Request) {
-	path := chi.URLParam(r, "*")
+	var newAPI model.API
+
+	uri := chi.URLParam(r, "*")
+	device := chi.URLParam(r, "devicename")
 	routeContext := chi.RouteContext(r.Context())
 	routePattern := routeContext.RoutePattern()
+	routeMethod := routeContext.RouteMethod
 
 	account := strings.Replace(routePattern, "/", "", -1)
 	account = strings.Replace(account, "*", "", -1)
 
-	mapResponse := map[string]string{
-		"path":        path,
-		"routePatten": routePattern,
-		"account":     account,
+	bodyBytes, bodyErr := ioutil.ReadAll(r.Body)
+	bodyString := string(bodyBytes)
+
+	if bodyErr != nil {
+		util.RespondWithError(w, http.StatusBadRequest, bodyErr.Error())
+		return
 	}
 
-	util.RespondwithJSON(w, http.StatusCreated, mapResponse)
+	// mapResponse := map[string]string{
+	// 	"method":      routeMethod,
+	// 	"uri":         uri,
+	// 	"routePatten": routePattern,
+	// 	"account":     account,
+	// 	"device":      device,
+	// }
+
+	newAPI.DeviceAccount = device
+	newAPI.Method = routeMethod
+	newAPI.URL = "/" + uri
+	newAPI.Body = bodyString
+
+	if model.IsJSON(bodyString) {
+		newAPI.Type = "json"
+	} else if model.IsXML(bodyString) {
+		newAPI.Type = "xml"
+	} else {
+		newAPI.Type = "error"
+	}
+
+	util.RespondwithJSON(w, http.StatusOK, newAPI)
 }
 
 // AddRoutes function
