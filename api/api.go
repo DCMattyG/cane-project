@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/fatih/structs"
@@ -35,6 +36,9 @@ func CreateAPI(w http.ResponseWriter, r *http.Request) {
 	var api model.API
 
 	json.NewDecoder(r.Body).Decode(&api)
+
+	api.Body = strings.Replace(api.Body, "\n", "", -1)
+	api.Body = strings.Replace(api.Body, "\\", "", -1)
 
 	accountFilter := primitive.M{
 		"name": api.DeviceAccount,
