@@ -1,0 +1,170 @@
+
+
+		<div class="content" style="height:100%" >
+                    <div class="container">
+                        <div class="section">
+
+				<a class="btn btn--primary" href="#/deviceapis/new">Add API</a>
+				<br>
+				<br>
+
+				<div class="alert alert--warning" style="margin: 15px 0;" ng-if="showMessage">
+                                        <div class="alert__icon icon-warning-outline"></div>
+                                        <div class="alert__message">
+                                                <h4 ng-bind="messageTitle"></h4>
+                                                <div ng-bind="messageText"></div>
+                                        </div>
+                                </div>
+
+				<div class="panel panel--bordered panel--bordered">
+
+					<table class="table">
+        					<thead>
+            					<tr>
+                					<th>Device</th>
+                					<th>Name</th>
+                					<th>Type</th>
+                					<th>URI</th>
+                					<th></th>
+            					</tr>
+        					</thead>
+        					<tbody>
+						<tr ng-repeat="(caneDevice, deviceApi) in myDeviceApisFlat">
+							<td>{{ deviceApi.deviceAccount }}</td>
+    							<td>{{ deviceApi.name }}</td>
+    							<td>{{ deviceApi.method }}</td>
+    							<td>{{ deviceApi.url }}</td>
+							<td><button class="btn btn--negative btn--icon btn--small" ng-click="deleteAPI(deviceApi.deviceAccount, deviceApi.name)"><span class="icon icon-delete"></span></button></td>
+  						</tr>
+        					</tbody>
+    					</table>
+	
+        			</div>
+
+                        </div>
+                    </div>
+
+<div class="modal hide" id="modal-newDevice">
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <a class="modal__close" onclick="closeModal('modal-newDevice')"><span class="icon-close"></span></a>
+            <div class="modal__header">
+                <h1 class="modal__title">Add New CANE Device</h1>
+            </div>
+            <div class="modal__body">
+
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="text" value="{{ editDevice.name }}" ng-model="name">
+                           <label for="input-type-email">Name</label>
+                   </div>       
+                </div>          
+		<div class="form-group">
+            		<div class="form-group__text select">
+				<select id="" ng-model="authtype">
+                			<option value="xxx">UCS Director</option>
+                			<option value="xxx">DNA Center</option>
+                			<option value="xxx">Meraki</option>
+                			<option value="rfc3447">Intersight</option>
+                			<option value="basic">Generic with Basic Auth</option>
+                			<option value="session">Generic with Session Auth</option>
+                			<option value="apikey">Generic with APIKey Auth</option>
+                			<option value="rfc3447">Generic with RFC 3447 Auth</option>
+				</select>
+                		<label for="select-size-default">Type</label>
+            		</div>
+        	</div>
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="text" value="{{ editDevice.ip }}" ng-model="ipaddress">
+                           <label for="input-type-email">IP Address</label>
+                   </div>       
+                </div>          
+
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="text" value="{{ editDevice.username }}" ng-model="username">
+                           <label for="input-type-email">Username</label>
+                   </div>               
+                </div>                  
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="password" value="{{ editDevice.password }}" ng-model="password">
+                           <label for="input-type-email">Password</label>
+                   </div>                       
+                </div>                          
+                                        
+            </div>                      
+            <div class="modal__footer"> 
+                <button class="btn" onclick="closeModal('modal-newDevice')">Cancel</button>
+                <button class="btn btn--primary" ng-click="addCaneDevice()" onclick="closeModal('modal-newDevice')">Save</button>
+            </div>                              
+        </div>                                  
+    </div>                                      
+</div> 
+
+<div class="modal hide" ng-repeat="caneDevice in myDevices" id="modal-editDevice-{{ caneDevice.name }}">
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <a class="modal__close" ng-click="closeDeviceModal(caneDevice.name)"><span class="icon-close"></span></a>
+            <div class="modal__header">
+                <h1 class="modal__title">Modify CANE Device</h1>
+            </div>
+            <div class="modal__body">
+
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="" type="text" ng-value="caneDevice.name" ng-model="name">
+                           <label for="">Name</label>
+                   </div>       
+                </div>          
+                <div class="form-group">
+                        <div class="form-group__text select">
+                                <select id="" ng-model="authtype">
+                                        <option value="xxx">UCS Director</option>
+                                        <option value="xxx">DNA Center</option>
+                                        <option value="xxx">Meraki</option>
+                                        <option value="rfc3447">Intersight</option>
+                                        <option value="basic">Generic with Basic Auth</option>
+                                        <option value="session">Generic with Session Auth</option>
+                                        <option value="apikey">Generic with APIKey Auth</option>
+                                        <option value="rfc3447">Generic with RFC 3447 Auth</option>
+                                </select>
+                                <label for="select-size-default">Type</label>
+                        </div>
+                </div>
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="text" value="{{ caneDevice.ip }}" ng-model="ipaddress">
+                           <label for="input-type-email">IP Address</label>
+                   </div>       
+                </div>          
+
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="text" value="{{ caneDevice.username }}" ng-model="username">
+                           <label for="input-type-email">Username</label>
+                   </div>               
+                </div>                  
+                <div class="form-group half-margin-bottom">
+                   <div class="form-group__text">
+                           <input id="input-type-email" type="password" value="{{ caneDevice.password }}" ng-model="password">
+                           <label for="input-type-email">Password</label>
+                   </div>                       
+                </div>                          
+                                        
+            </div>                      
+            <div class="modal__footer"> 
+                <button class="btn" ng-click="closeDeviceModal(caneDevice.name)">Cancel</button>
+                <button class="btn btn--primary" ng-click="addCaneDevice()" >Save</button>
+            </div>                              
+        </div>                                  
+    </div>                                      
+</div> 
+
+
+
+                </div>
+<div class="modal-backdrop hide"></div>
+
+

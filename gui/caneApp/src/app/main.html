@@ -1,0 +1,65 @@
+        <div class="content-fluid">
+            <main>
+                <header class="header header--tall" ng-controller="headerController">
+                    <div class="header-bar container" ng-show="isAuthenticated">
+                        <a href="javascript:;" class="header-bar__logo">
+                            <span class="icon-cisco"></span>
+                        </a>
+                        <div class="header-bar__main">
+                            <div class="header-heading">
+                                <h1 class="page-title">Cisco API Normalization Engine</h1>
+                            </div>
+                            <div class="header-menus">
+                                <ul class="nav nav-tabs" ng-init="selectedTab = 'tab1'">
+				    <li class="tab" ng-class="{'active':selectedTab === 'tab1'}" ng-click="selectedTab = 'tab1'">
+                                        <a href="#/"><div class="tab__heading" title="">Home</div></a>
+                                    </li>
+				    <li class="tab" ng-class="{'active':selectedTab === 'tab2'}" ng-click="selectedTab = 'tab2'">
+                                        <a href="#/devices"><div class="tab__heading" title="">Devices</div></a>
+                                    </li>
+				    <li class="tab" ng-class="{'active':selectedTab === 'tab3'}" ng-click="selectedTab = 'tab3'">
+                                        <a href="#/deviceapis"><div class="tab__heading" title="">Device APIs</div></a>
+                                    </li>
+				    <li class="tab" ng-class="{'active':selectedTab === 'tab4'}" ng-click="selectedTab = 'tab4'">
+                                        <a href="#/workflows"><div class="tab__heading" title="">Workflows</div></a>
+                                    </li>
+				    <li class="tab" ng-class="{'active':selectedTab === 'tab5'}" ng-click="selectedTab = 'tab5'">
+                                        <a href="#/jobs"><div class="tab__heading" title="">Jobs</div></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="header-toolbar" >
+                                <div class="dropdown dropdown--left">
+					<button class="btn btn--small"><span ng-bind="userName"></span></button>
+                                        <div class="dropdown__menu">
+                                                <a ng-click="doLogout()">Log Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                    </div>
+                </header>
+
+
+		<div class="content" style="height:100%" >
+			<div ng-view></div>
+		</div>
+
+
+		<footer class="footer footer--basic">
+                    <div class="footer__links">
+                        <ul class="list">
+                            <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank">Contacts</a></li>
+                            <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank">Feedback</a></li>
+                            <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank">Help</a></li>
+                            <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank">Site Map</a></li>
+                            <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank">Terms & Conditions</a></li>
+                            <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank">Privacy Statement</a></li>
+                            <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank">Cookie Policy</a></li>
+                            <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank">Trademarks</a></li>
+                        </ul>
+                    </div>
+                </footer>
+            </main>
+        </div>
+

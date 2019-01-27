@@ -1,0 +1,88 @@
+
+
+		<div class="content" style="height:100%" >
+                    <div class="container">
+                        <div class="section">
+
+			<h1>New Workflow</h1><br>
+			    <div class="panel panel--bordered panel--bordered">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="form-group">
+                					<div class="form-group__text">
+                    						<input id="input-layout-default" type="text" ng-model="workflowName">
+                    						<label for="input-layout-default">Name</label>
+                					</div>
+            					</div>
+            				</div>
+					<div class="col-md-3">
+						<div class="form-group">
+                        				<div class="form-group__text select">
+								<select ng-model="workflowCategory">
+									<option selected>Network</option>
+									<option>Compute</option>
+									<option>Security</option>
+									<option>Collaboration</option>
+								</select>
+								<label for="select-size-default">Category</label>
+							</div>
+						</div>
+            				</div>
+					<div class="col-md-6">
+						<div class="form-group">
+            						<div class="form-group__text">
+                						<textarea id="input-textarea-multiple" class="textarea" rows="3" ng-model="workflowDescription"></textarea>
+                						<label for="input-textarea-multiple">Description</label>
+            						</div>
+        					</div>
+            				</div>
+            			</div>
+			    </div>
+			    	<br><br>
+  					<!--<nude src="'views/workflowStep.html'"></ng-include> -->
+
+			    		<div class="panel panel--bordered" id="step_{{key}}" ng-repeat="workflowStepObject in workflowSteps track by $index">
+						<h3>Step {{workflowStepObject.stepID}}</h3>
+						<div class="divider divider--accent-blue"></div>
+						<div class="row">
+							<div class="col-md-3">
+								<div class="form-group">
+                        						<div class="form-group__text select ">
+									 	<select ng-model="workflowStepObject.input1" ng-options="x for x in myDeviceList"></select>
+										<label for="step_{{key}}_device">Device</label>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="form-group">
+                        						<div class="form-group__text select">
+										<select ng-model="workflowStepObject.input2" ng-options="x for x in myDeviceApis[ workflowStepObject.input1 ]"> </select>
+										<label for="step_{{key}}_api">API</label>
+									</div>
+        							</div>
+        						</div>
+							<div class="col-md-6">
+								<div class="form-group">
+            								<div class="form-group__text">
+                								<textarea id="step_{{key}}_map" class="textarea" rows="5" ng-model="workflowStepObject.input3" ></textarea>
+                								<label for="step_{{key}}_map">Variable Map</label>
+            								</div>
+        							</div>
+        						</div>
+        					</div>
+			    		</div>
+					<br>
+
+				<br>
+				<button class="btn btn--small btn--secondary pull-left" ng-click="addStep()"><span class="icon-add icon-small"></span> New Step</button>
+				<br>
+			
+				<br> <hr> <br>
+
+				<center><button class="btn btn--success" ng-click="saveWorkflow()">Save Workflow</button></center>
+
+                        </div>
+                    </div>
+                </div>
+
+

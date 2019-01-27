@@ -1,0 +1,84 @@
+
+
+		<div class="content" style="height:100%" >
+                    <div class="container">
+                        <div class="section">
+
+				<h1>New API</h1>
+				<div class="panel panel--bordered panel--bordered">
+
+					<div class="row">
+						<div class="col-md-4">
+							<div class="form-group">
+                                        			<div class="form-group__text">
+                                        				<input id="input-layout-default" type="text" ng-model="name">
+                                        				<label for="input-layout-default">Name</label>
+                                        			</div>
+                                			</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+                        					<div class="form-group__text select">
+                                					<select id="" ng-model="devicename">
+                                        					<option ng-repeat="caneDevice in myDeviceList">{{ caneDevice }}</option>
+                                					</select>
+                                					<label for="select-size-default">Device</label>
+                        					</div>
+                					</div>
+						</div>
+                                                <div class="col-md-4">
+							<div class="form-group">
+                        					<div class="form-group__text select">
+                                					<select id="" ng-model="datatype">
+										<option value="json" selected>JSON</option>
+										<option value="xml">XML</option>
+                                					</select>
+                                					<label for="select-size-default">Type</label>
+                        					</div>
+                					</div>
+                                                </div>
+					</div>
+					<div class="row">
+						<div class="col-md-4">
+							<div class="form-group">
+                        					<div class="form-group__text select">
+                                					<select id="" ng-model="method">
+										<option value="GET" selected>GET</option>
+										<option value="POST">POST</option>
+										<option value="PATCH">PATCH</option>
+										<option value="DELETE">DELETE</option>
+                                					</select>
+                                					<label for="select-size-default">Method</label>
+                        					</div>
+                					</div>
+                                                </div>
+						<div class="col-md-8">
+							<div class="form-group">
+                                        			<div class="form-group__text">
+                                        				<input id="input-uri" type="text" ng-model="apiendpoint">
+                                        				<label for="input-uri">API Endpoint</label>
+                                        			</div>
+                                			</div>
+						</div>
+					</div>
+					<br>
+                                        		<div class="form-group">
+                                        			<div class="form-group__text">
+                                                			<textarea id="input-textarea-multiple" class="textarea" rows="20" ng-model="inputParams"></textarea>
+                                                			<label for="input-textarea-multiple">Input</label>
+                                        			</div>
+                                        		</div>
+							<br>
+	                                                <button ng-click="parseResponse()" class="btn btn--secondary btn--small"><span class="icon-animation icon--small"></span> Clean Input</button>
+
+					<hr>
+                                        <center><button ng-click="saveAPI()" class="btn btn--success">Save</button></center>
+
+        			</div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
