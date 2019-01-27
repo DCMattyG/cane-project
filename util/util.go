@@ -40,7 +40,7 @@ func init() {
 	httpProxy := os.Getenv("CANE_PROXY")
 
 	if len(httpProxy) > 0 {
-		fmt.Println("Setting Proxy: ", httpProxy)
+		fmt.Println("Setting Proxy:", httpProxy)
 		ProxyURL = httpProxy
 	}
 }
