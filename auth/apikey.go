@@ -78,7 +78,9 @@ func APIKeyAuth(api model.API) (*http.Request, error) {
 
 	fmt.Println("FORMED HEADER: ", req.Header)
 
+	// For testing, fix this later to support XML & JSON
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
 
 	return req, nil
 }
