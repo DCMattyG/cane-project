@@ -27,7 +27,7 @@
             					<tr>
                 					<th>Name</th>
                 					<th>Type</th>
-                					<th>IP</th>
+                					<th>URL</th>
                 					<th>Status</th>
                 					<th>Passthrough Endpoint</th>
 							<!--<th>Last Refresh</th>-->
@@ -95,13 +95,13 @@
 		<div ng-if="authtype == 'rfc3447'">
                 	<div class="form-group half-margin-bottom">
                    		<div class="form-group__text">
-                           		<input id="input-type-pubkey" type="text" value="" ng-model="$parent.rfc3447_public">
+					<input id="input-type-pubkey" type="text" ng-model="$parent.rfc3447_public">
                            		<label for="input-type-pubkey">Public Key</label>
                    		</div>               
                 	</div>                  
                 	<div class="form-group half-margin-bottom">
                    		<div class="form-group__text">
-                           		<input id="input-type-privkey" type="text" value="" ng-model="$parent.rfc3447_private">
+					<textarea id="input-type-privkey" type="text" rows="6" ng-model="$parent.rfc3447_private"></textarea>
                            		<label for="input-type-privkey">Private Key</label>
                    		</div>                       
                 	</div>                          
