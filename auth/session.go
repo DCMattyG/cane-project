@@ -42,7 +42,7 @@ func SessionAuth(api model.API) (*http.Request, error) {
 	fmt.Println("TARGETURL: ", targetURL)
 
 	// Create HTTP request
-	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(""))
+	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(api.Body))
 
 	if err != nil {
 		log.Print(err)

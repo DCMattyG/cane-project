@@ -34,7 +34,7 @@ func BasicAuth(api model.API) (*http.Request, error) {
 	targetURL := host.String() + api.URL
 
 	// Create HTTP request
-	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(""))
+	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(api.Body))
 
 	if err != nil {
 		log.Print(err)
