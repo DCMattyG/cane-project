@@ -78,5 +78,7 @@ func APIKeyAuth(api model.API) (*http.Request, error) {
 
 	fmt.Println("FORMED HEADER: ", req.Header)
 
+	req.Header.Add("Content-Type", "application/json")
+
 	return req, nil
 }
