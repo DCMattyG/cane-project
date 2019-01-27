@@ -343,6 +343,26 @@ app.controller('caneDevicesController', function($scope, $rootScope, $location, 
                         });
 	}
 
+	$scope.resetModal = function() {
+
+		$scope.name = "";
+		$scope.ipaddress = "";
+		$scope.authtype = "";
+		$scope.basic_username = "";
+		$scope.basic_password = "";
+		$scope.apikey_header = "";
+		$scope.apikey_key = "";
+		$scope.session_username = "";
+		$scope.session_password = "";
+		$scope.session_authbody = "";
+		$scope.session_usernameMap = "";
+		$scope.session_passwordMap = "";
+		$scope.session_lifetime = "";
+		$scope.rfc3447_public = "";
+		$scope.rfc3447_private = "";
+
+	}
+
 	/*********************************
 	 * Get Cane device detail
 	 * ******************************/
@@ -432,7 +452,8 @@ app.controller('caneDevicesController', function($scope, $rootScope, $location, 
                         data: $scope.session_authbody
                 }).then (
                         function mySuccess(response) {
-                                $scope.session_authbody = response.data.parsedAPI;
+				console.log(response);
+                                $scope.session_authbody = JSON.stringify(response.data);
 
                         }, function myError(response) {
                                 alert("There was an error");
@@ -869,7 +890,7 @@ app.controller('caneDeviceApiController', function($scope, $rootScope, $location
                         data: $scope.inputParams
                 }).then (
                         function mySuccess(response) {
-				$scope.inputParams = response.data.parsedAPI;
+				$scope.inputParams = JSON.stringify(response.data); //parsedAPI?
 
                         }, function myError(response) {
 				alert("There was an error");
