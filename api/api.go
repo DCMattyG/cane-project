@@ -209,8 +209,6 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 	var req *http.Request
 	var reqErr error
 
-	fmt.Println("ProxyURL from UTIL:", util.ProxyURL)
-
 	proxyURL, err := url.Parse(util.ProxyURL)
 	if err != nil {
 		fmt.Println("Invalid proxy URL format: ", util.ProxyURL)
@@ -222,11 +220,8 @@ func CallAPI(targetAPI model.API) (*http.Response, error) {
 		}
 	}
 
-	fmt.Println("proxyURL.RawPath:", proxyURL.RawPath)
-
 	// Add proxy settings to the HTTP Transport object
-	if len(proxyURL.RawPath) > 0 {
-		fmt.Println("Adding Proxy:", proxyURL)
+	if len(proxyURL.String()) > 0 {
 		transport.Proxy = http.ProxyURL(proxyURL)
 	}
 
