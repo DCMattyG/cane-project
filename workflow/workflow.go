@@ -206,6 +206,8 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		step.APICall = stepAPI.Name
 		step.APIAccount = stepAPI.DeviceAccount
 
+		stepAPI.Body = strings.Replace(stepAPI.Body, "\\", "", -1)
+
 		fmt.Println("Beginning VarMap Loop...")
 
 		// For each Variable Map in "VARMAP"
