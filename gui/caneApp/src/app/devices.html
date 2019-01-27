@@ -123,30 +123,49 @@
 		</div>
 
 		<div ng-if="authtype == 'session'">
-                	<div class="form-group half-margin-bottom">
-                   		<div class="form-group__text">
-                           		<input id="input-type-sessionusername" type="text" value="" ng-model="$parent.session_username">
-                           		<label for="input-type-sessionusername">Username</label>
-                   		</div>               
+			<div class="row">
+				<div class="col-md-6">
+                			<div class="form-group half-margin-bottom">
+                   				<div class="form-group__text">
+                           				<input id="input-type-sessionusername" type="text" value="" ng-model="$parent.session_username">
+                           				<label for="input-type-sessionusername">Username</label>
+                   				</div>               
+                			</div>                  
+                		</div>                  
+				<div class="col-md-6">
+                			<div class="form-group half-margin-bottom">
+                   				<div class="form-group__text">
+                           				<input id="input-type-sessionusernamemap" type="text" value="" ng-model="$parent.session_usernameMap">
+                           				<label for="input-type-sessionusernamemap">Maps To</label>
+                   				</div>               
+                			</div>                  
+                		</div>                  
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+                			<div class="form-group half-margin-bottom">
+                   				<div class="form-group__text">
+                           				<input id="input-type-sessionpassword" type="text" value="" ng-model="$parent.session_password">
+                           				<label for="input-type-sessionpassword">Password</label>
+                   				</div>               
+                			</div>                  
+				</div>
+				<div class="col-md-6">
+                			<div class="form-group half-margin-bottom">
+                   				<div class="form-group__text">
+                           				<input id="input-type-sessionpasswordmap" type="text" value="" ng-model="$parent.session_passwordMap">
+                           				<label for="input-type-sessionpasswordmap">Maps To</label>
+                   				</div>               
+                			</div>                  
+                		</div>                  
                 	</div>                  
                 	<div class="form-group half-margin-bottom">
                    		<div class="form-group__text">
-                           		<input id="input-type-sessionpassword" type="text" value="" ng-model="$parent.session_password">
-                           		<label for="input-type-sessionpassword">Password</label>
-                   		</div>               
-                	</div>                  
-                	<div class="form-group half-margin-bottom">
-                   		<div class="form-group__text">
-                           		<input id="input-type-authbody" type="text" value="" ng-model="$parent.session_authbody">
+					<textarea id="input-type-authbody" type="text" rows="6" ng-model="$parent.session_authbody"></textarea>
                            		<label for="input-type-authbody">Auth Body</label>
                    		</div>                       
+				 <button ng-click="parseResponse()" class="btn btn--secondary btn--small btn--icon"><span class="icon-animation icon--small"></span></button>
                 	</div>                          
-                	<div class="form-group half-margin-bottom">
-                   		<div class="form-group__text">
-					<textarea id="input-type-authmap" type="text" rows="6" ng-model="$parent.session_authbodymap"></textarea>
-                           		<label for="input-type-authmap">Auth Body Map</label>
-                   		</div>               
-                	</div>                  
                 	<div class="form-group half-margin-bottom">
                    		<div class="form-group__text">
                            		<input id="input-type-lifetime" type="text" value="" ng-model="$parent.session_lifetime">

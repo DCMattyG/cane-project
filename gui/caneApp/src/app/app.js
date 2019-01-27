@@ -5,47 +5,47 @@ app.config(function($routeProvider) {
 	  $routeProvider
 
 	  .when('/',	 {
-		      templateUrl : 'home.html',
+		      templateUrl : 'pages/home.html',
 		      controller  : 'caneHomeController'
 		    })
 
 	  .when('/login', {
-		      templateUrl : 'login.html',
+		      templateUrl : 'pages/login.html',
 		      controller  : 'caneLoginController'
 		    })
 
 	  .when('/signup', {
-		      templateUrl : 'signup.html',
+		      templateUrl : 'pages/signup.html',
 		      controller  : 'caneLoginController'
 		    })
 
 	  .when('/jobs', {
-		      templateUrl : 'jobs.html',
+		      templateUrl : 'pages/jobs.html',
 		      controller  : 'caneJobsController'
 		    })
 
 	  .when('/workflows', {
-		      templateUrl : 'workflows.html',
+		      templateUrl : 'pages/workflows.html',
 		      controller  : 'caneWorkflowController'
 		    })
 
 	  .when('/workflows/new', {
-		      templateUrl : 'workflows_new.html',
+		      templateUrl : 'pages/workflows_new.html',
 		      controller  : 'caneWorkflowController'
 		    })
 
 	  .when('/deviceapis', {
-		      templateUrl : 'deviceapis.html',
+		      templateUrl : 'pages/deviceapis.html',
 		      controller  : 'caneDeviceApiController'
 		    })
 
 	  .when('/deviceapis/new', {
-		      templateUrl : 'deviceapis_new.html',
+		      templateUrl : 'pages/deviceapis_new.html',
 		      controller  : 'caneDeviceApiController'
 		    })
 
 	  .when('/devices', {
-		      templateUrl : 'devices.html',
+		      templateUrl : 'pages/devices.html',
 		      controller  : 'caneDevicesController'
 		    })
 
@@ -408,6 +408,38 @@ app.controller('caneDevicesController', function($scope, $rootScope, $location, 
 		$scope.authtype = "";
 	}
 
+	$scope.isJson = function (str) {
+    		try {
+        		JSON.parse(str);
+			console.log("string is json");
+    		} catch (e) {
+			console.log("string is NOT json");
+        		return false;
+    		}
+    		return true;
+	}
+
+	$scope.parseResponse = function() {
+
+		var bodytype = "xml";
+		if ($scope.isJson($scope.session_authbody)) {
+			bodytype = "json";
+		} 
+                $http({
+                        url: $rootScope.baseUrl + 'parseVars',
+                        method: 'POST',
+			headers: { "Content-Type": 'application/' + bodytype},
+                        data: $scope.session_authbody
+                }).then (
+                        function mySuccess(response) {
+                                $scope.session_authbody = response.data.parsedAPI;
+
+                        }, function myError(response) {
+                                alert("There was an error");
+                        });
+
+        }
+
 	/*********************************
 	 * Add a new Cane Device
 	 * ******************************/
@@ -432,9 +464,20 @@ app.controller('caneDevicesController', function($scope, $rootScope, $location, 
 		}
 		else if ($scope.authtype == "session") {
 			data.auth.username = $scope.session_username;
+			//data.auth.usernameMap = $scope.session_usernameMap;
 			data.auth.password = $scope.session_password;
+			//data.auth.passwordMap = $scope.session_passwordMap;
 			data.auth.authBody = $scope.session_authbody;
-			data.auth.authBodyMap = $scope.session_authbodymap;
+			//data.auth.authBodyMap = $scope.session_authbodymap;
+			data.auth.authBodyMap = [];
+			var tempUserMap = {
+				username: $scope.session_usernameMap
+			};
+			var tempPassMap = {
+				password: $scope.session_passwordMap
+			};
+			data.auth.authBodyMap.push(tempUserMap);
+			data.auth.authBodyMap.push(tempPassMap);
 			data.auth.cookieLifetime = $scope.session_lifetime;
 		}
 		else if ($scope.authtype == "rfc3447") {
