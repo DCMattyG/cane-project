@@ -64,14 +64,15 @@ func APIKeyAuth(api model.API) (*http.Request, error) {
 	apiHeader := foundVal["header"].(string)
 	apiKey := foundVal["key"].(string)
 
-	fmt.Println("APIHEADER: ", apiHeader)
-	fmt.Println("APIKEY: ", apiKey)
-
 	// Append headers to HTTP request
 	if apiHeader != "" {
+		header := fmt.Sprintf("HEADER: %s: %s", apiHeader, apiKey)
+		fmt.Println(header)
 		req.Header.Add(apiHeader, apiKey)
 	} else {
 		bearerToken := "Bearer " + apiKey
+		header := fmt.Sprintf("HEADER--> Authorization: Bearer %s", apiKey)
+		fmt.Println(header)
 		req.Header.Add("Authorization", bearerToken)
 	}
 
