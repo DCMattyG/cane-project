@@ -251,16 +251,25 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	bodyObject := make(map[string]interface{})
 
-	jsonErr := json.Unmarshal(respBody, &bodyObject)
+	bodyMap := map[string]interface{}{}
+	bodyArray := []map[string]interface{}{}
 
-	if jsonErr != nil {
-		util.RespondWithError(w, http.StatusBadRequest, jsonErr.Error())
+	mapErr := json.Unmarshal(respBody, &bodyMap)
+	arrayErr := json.Unmarshal(respBody, &bodyArray)
+
+	if mapErr == nil {
+		util.RespondwithJSON(w, resp.StatusCode, bodyMap)
 		return
 	}
 
-	util.RespondwithJSON(w, resp.StatusCode, bodyObject)
+	if arrayErr == nil {
+		util.RespondwithJSON(w, resp.StatusCode, bodyArray)
+		return
+	}
+
+	util.RespondWithError(w, http.StatusBadRequest, "error unmarshaling response body")
+	return
 }
 
 // AddRoutes function
