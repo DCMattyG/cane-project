@@ -253,7 +253,12 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	bodyObject := make(map[string]interface{})
 
-	json.Unmarshal(respBody, &bodyObject)
+	jsonErr := json.Unmarshal(respBody, &bodyObject)
+
+	if jsonErr != nil {
+		util.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	util.RespondwithJSON(w, resp.StatusCode, bodyObject)
 }
