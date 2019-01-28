@@ -256,7 +256,7 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 	jsonErr := json.Unmarshal(respBody, &bodyObject)
 
 	if jsonErr != nil {
-		util.RespondWithError(w, http.StatusBadRequest, err.Error())
+		util.RespondWithError(w, http.StatusBadRequest, jsonErr.Error())
 		return
 	}
 
