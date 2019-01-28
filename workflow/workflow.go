@@ -175,6 +175,9 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 	fmt.Println("Beginning Step Loop...")
 
+	fmt.Println("Step Zero Body:")
+	fmt.Println(stepZero)
+
 	// For each step in "STEPS"
 	for i := 0; i < len(targetWorkflow.Steps); i++ {
 		var step model.StepResult
