@@ -224,6 +224,16 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 				if stepFrom == "0" {
 					setData = gjson.Get(stepZero, fromMap)
+				} else if stepFrom == "s" {
+					var gString gjson.Result
+					gString.Str = fromMap
+					gString.Type = gjson.String
+					setData = gString
+				} else if stepFrom == "n" {
+					var gString gjson.Result
+					gString.Num, _ = strconv.ParseFloat(fromMap, 64)
+					gString.Type = gjson.Number
+					setData = gString
 				} else {
 					fmt.Println("Res Body: ", apiResults[stepFrom].ResBody)
 					setData = gjson.Get(apiResults[stepFrom].ResBody, fromMap)
