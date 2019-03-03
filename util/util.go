@@ -21,6 +21,9 @@ var ProxyURL string
 // IgnoreSSL Global Setting
 var IgnoreSSL bool
 
+// DebugEnable Global Setting
+var DebugEnable bool
+
 // XMLNode Struct
 type XMLNode struct {
 	XMLName xml.Name
@@ -81,7 +84,7 @@ func RespondWithError(w http.ResponseWriter, code int, msg string) {
 
 // JSONPrettyPrint Function
 // Formats JSON into a much more easily readable format
-// by proeprly indenting with two spaces where needed
+// by properly indenting with two spaces where needed
 // and returns it as a string
 func JSONPrettyPrint(input string) string {
 	var output bytes.Buffer

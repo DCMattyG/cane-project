@@ -63,13 +63,11 @@ func GetClaims(w http.ResponseWriter, r *http.Request) {
 	foundVal, foundErr := database.FindAll("workflows", "claims", primitive.M{}, opts)
 
 	if foundErr != nil {
-		fmt.Println(foundErr)
 		util.RespondWithError(w, http.StatusBadRequest, "no claims found")
 		return
 	}
 
 	if len(foundVal) == 0 {
-		fmt.Println(foundVal)
 		util.RespondWithError(w, http.StatusBadRequest, "empty claims list")
 		return
 	}
@@ -88,7 +86,6 @@ func GetClaim(w http.ResponseWriter, r *http.Request) {
 	foundVal, foundErr := GetClaimFromDB(claimCode)
 
 	if foundErr != nil {
-		fmt.Println(foundErr)
 		util.RespondWithError(w, http.StatusBadRequest, "claim code not found")
 		return
 	}
@@ -109,14 +106,12 @@ func GetClaimFromDB(claimCode string) (model.WorkflowClaim, error) {
 	foundVal, foundErr := database.FindOne("workflows", "claims", filter)
 
 	if foundErr != nil {
-		fmt.Println(foundErr)
 		return claim, foundErr
 	}
 
 	mapErr := mapstructure.Decode(foundVal, &claim)
 
 	if mapErr != nil {
-		fmt.Println(mapErr)
 		return claim, mapErr
 	}
 

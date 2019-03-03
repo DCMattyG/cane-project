@@ -56,10 +56,6 @@ func CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// target.ID = deviceID.(primitive.ObjectID)
-
-	// foundVal, _ := database.FindOne("workflows", "workflow", filter)
-
 	util.RespondwithString(w, http.StatusCreated, "")
 }
 
@@ -170,7 +166,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 	var stepAPI model.API
 	var stepAPIErr error
 
-	// apiResults := make(map[string]interface{})
 	apiResults := make(map[string]model.StepResult)
 
 	fmt.Println("Beginning Step Loop...")
@@ -202,7 +197,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			workflowClaim.WorkflowResults = apiResults
 			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
-			// util.RespondWithError(w, http.StatusBadRequest, "error loading target API")
 			return
 		}
 
@@ -285,7 +279,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 					workflowClaim.WorkflowResults = apiResults
 					workflowClaim.CurrentStatus = -1
 					workflowClaim.Save()
-					// util.RespondWithError(w, http.StatusBadRequest, "Invalid mapping data")
 					return
 				}
 
@@ -302,7 +295,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 					workflowClaim.WorkflowResults = apiResults
 					workflowClaim.CurrentStatus = -1
 					workflowClaim.Save()
-					// util.RespondWithError(w, http.StatusBadRequest, "error mapping api variables")
 					return
 				}
 			}
@@ -311,7 +303,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		fmt.Println("Updated Body: ", stepAPI.Body)
 		step.ReqBody = stepAPI.Body
 
-		apiResp, apiErr := api.CallAPI(stepAPI)
+		apiResp, apiErr := api.CallAPI(stepAPI, nil)
 
 		if apiErr != nil {
 			fmt.Println(apiErr)
@@ -321,7 +313,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			workflowClaim.WorkflowResults = apiResults
 			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
-			// util.RespondWithError(w, http.StatusBadRequest, "error executing API")
 			return
 		}
 
@@ -340,7 +331,6 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			workflowClaim.WorkflowResults = apiResults
 			workflowClaim.CurrentStatus = -1
 			workflowClaim.Save()
-			// util.RespondWithError(w, http.StatusBadRequest, "error reading response body")
 			return
 		}
 
@@ -349,27 +339,10 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		step.ResBody = string(respBody)
 
-		// bodyObject := make(map[string]interface{})
-		// marshalErr := json.Unmarshal(respBody, &bodyObject)
-
-		// if marshalErr != nil {
-		// 	fmt.Println(marshalErr)
-		// 	step.Status = -1
-		// 	step.Error = marshalErr.Error()
-		// 	apiResults[strconv.Itoa(i+1)] = step
-		// 	workflowClaim.WorkflowResults = apiResults
-		// 	workflowClaim.CurrentStatus = -1
-		// 	workflowClaim.Save()
-		// 	// util.RespondWithError(w, http.StatusBadRequest, "error parsing response body")
-		// 	return
-		// }
-
 		step.Status = 2
 		apiResults[strconv.Itoa(i+1)] = step
 		workflowClaim.WorkflowResults = apiResults
 		workflowClaim.CurrentStatus = 2
 		workflowClaim.Save()
 	}
-
-	// util.RespondwithJSON(w, http.StatusOK, apiResults)
 }

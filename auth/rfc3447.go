@@ -149,6 +149,7 @@ func getGMTDate() string {
 // *Response with the outcome of the API call
 func RFC3447Auth(httpMethod string, resourcePath string, queryParams url.Values, body map[string]interface{}, moid string, name string) *http.Request {
 	var bodyString string
+	var queryPath string
 
 	host, err := url.Parse("https://intersight.com/api/v1")
 	if err != nil {
@@ -157,7 +158,6 @@ func RFC3447Auth(httpMethod string, resourcePath string, queryParams url.Values,
 
 	targetHost := host.Hostname()
 	targetPath := host.RequestURI()
-	queryPath := ""
 	method := strings.ToUpper(httpMethod)
 
 	// Verify an accepted HTTP verb was chosen

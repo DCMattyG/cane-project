@@ -39,7 +39,7 @@ type API struct {
 	Name          string             `json:"name" bson:"name" mapstructure:"name" structs:"name"`
 	DeviceAccount string             `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount" structs:"deviceAccount"`
 	Method        string             `json:"method" bson:"method" mapstructure:"method" structs:"method"`
-	URL           string             `json:"url" bson:"url" mapstructure:"url" structs:"url"`
+	Path          string             `json:"path" bson:"path" mapstructure:"path" structs:"path"`
 	Body          string             `json:"body" bson:"body" mapstructure:"body" structs:"body"`
 	Type          string             `json:"type" bson:"type" mapstructure:"type" structs:"type"`
 }
@@ -58,12 +58,12 @@ type UserAccount struct {
 
 // DeviceAccount Struct
 type DeviceAccount struct {
-	ID           primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
-	Name         string             `json:"name" bson:"name" mapstructure:"name" structs:"name"`
-	URL          string             `json:"url" bson:"url" mapstructure:"url" structs:"url"`
-	AuthType     string             `json:"authType" bson:"authType" mapstructure:"authType" structs:"authType"`
-	AuthObj      primitive.ObjectID `json:"authObj" bson:"authObj" mapstructure:"authObj" structs:"authObj"`
-	RequireProxy bool               `json:"requireProxy" bson:"requireProxy" mapstructure:"requireProxy" structs:"requireProxy"`
+	ID           primitive.ObjectID     `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
+	Name         string                 `json:"name" bson:"name" mapstructure:"name" structs:"name"`
+	BaseURL      string                 `json:"baseURL" bson:"baseURL" mapstructure:"baseURL" structs:"baseURL"`
+	AuthType     string                 `json:"authType" bson:"authType" mapstructure:"authType" structs:"authType"`
+	RequireProxy bool                   `json:"requireProxy" bson:"requireProxy" mapstructure:"requireProxy" structs:"requireProxy"`
+	AuthObj      map[string]interface{} `json:"authObj" bson:"authObj" mapstructure:"authObj" structs:"authObj"`
 }
 
 // RouteValue Struct
@@ -84,7 +84,6 @@ type Workflow struct {
 	Description string             `json:"description" bson:"description" mapstructure:"description" structs:"description"`
 	Type        string             `json:"type" bson:"type" mapstructure:"type" structs:"type"`
 	Steps       []Step             `json:"steps" bson:"steps" mapstructure:"steps" structs:"steps"`
-	// ClaimCode   int                `json:"claimCode" bson:"claimCode" mapstructure:"claimCode" structs:"claimCode"`
 	// Note, add OutputMap []map[string]string
 }
 
@@ -99,12 +98,12 @@ type WorkflowClaim struct {
 
 // Step Struct
 type Step struct {
-	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
-	// StepNum       int                 `json:"stepNum" bson:"stepNum" mapstructure:"stepNum" structs:"stepNum"`
+	ID            primitive.ObjectID  `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
+	Title         string              `json:"title" bson:"title" mapstructure:"title" structs:"title"`
+	Description   string              `json:"description" bson:"description" mapstructure:"description" structs:"description"`
 	APICall       string              `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
 	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount" structs:"deviceAccount"`
 	VarMap        []map[string]string `json:"varMap" bson:"varMap" mapstructure:"varMap" structs:"varMap"`
-	// Status        int                 `json:"status" bson:"status" mapstructure:"status" structs:"status"`
 }
 
 // StepResult Struct

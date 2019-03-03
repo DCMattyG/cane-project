@@ -84,10 +84,9 @@ func main() {
 		canePort += "8005"
 	}
 
-	routing.Routers()
-
 	fmt.Println("Starting router...")
-	// http.ListenAndServe(":8005", logger())
+
+	routing.Routers()
 
 	fmt.Println("Listening on port", canePort)
 
