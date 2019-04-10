@@ -30,8 +30,8 @@ type JSONBody map[string]interface{}
 
 // APITypes Slice
 var APITypes = []string{
-	"xml",
-	"json",
+	"XML",
+	"JSON",
 }
 
 // APIMethods Slice
