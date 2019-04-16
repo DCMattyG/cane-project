@@ -254,7 +254,7 @@ func GetAPIFromDB(apiAccount string, apiName string) (model.API, error) {
 }
 
 // CallAPI Function
-func CallAPI(targetAPI model.API, queryParams url.Values) (*http.Response, error) {
+func CallAPI(targetAPI model.API, queryParams url.Values, headerVals map[string]string) (*http.Response, error) {
 	transport := &http.Transport{}
 	client := &http.Client{}
 
@@ -315,6 +315,11 @@ func CallAPI(targetAPI model.API, queryParams url.Values) (*http.Response, error
 	// Add proxy settings to the HTTP Transport object
 	if targetDevice.RequireProxy {
 		transport.Proxy = http.ProxyURL(proxyURL)
+	}
+
+	// Append headers to HTTP request
+	for key, value := range headerVals {
+		req.Header.Add(key, value)
 	}
 
 	client = &http.Client{

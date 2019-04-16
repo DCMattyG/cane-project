@@ -11,6 +11,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -147,4 +148,13 @@ func StructToMap(iface interface{}) map[string]interface{} {
 	}
 
 	return newMap
+}
+
+// IsVar Function
+func IsVar(data string) bool {
+	if strings.HasPrefix(data, "{{") && strings.HasSuffix(data, "}}") {
+		return true
+	}
+
+	return false
 }

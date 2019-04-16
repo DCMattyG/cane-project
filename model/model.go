@@ -2,6 +2,7 @@ package model
 
 import (
 	"crypto/rsa"
+	"net/url"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
@@ -103,15 +104,21 @@ type Step struct {
 	Description   string              `json:"description" bson:"description" mapstructure:"description" structs:"description"`
 	APICall       string              `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
 	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount" structs:"deviceAccount"`
+	Headers       []map[string]string `json:"headers" bson:"headers" mapstructure:"headers" structs:"headers"`
+	Variables     []map[string]string `json:"variables" bson:"variables" mapstructure:"variables" structs:"variables"`
+	Body          []map[string]string `json:"body" bson:"body" mapstructure:"body" structs:"body"`
+	Query         []map[string]string `json:"query" bson:"query" mapstructure:"query" structs:"query"`
 	VarMap        []map[string]string `json:"varMap" bson:"varMap" mapstructure:"varMap" structs:"varMap"`
 }
 
 // StepResult Struct
 type StepResult struct {
-	APICall    string `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
-	APIAccount string `json:"apiAccount" bson:"apiAccount" mapstructure:"apiAccount" structs:"apiAccount"`
-	ReqBody    string `json:"reqBody" bson:"reqBody" mapstructure:"reqBody" structs:"reqBody"`
-	ResBody    string `json:"resBody" bson:"resBody" mapstructure:"resBody" structs:"resBody"`
-	Error      string `json:"error" bson:"error" mapstructure:"error" structs:"error"`
-	Status     int    `json:"status" bson:"status" mapstructure:"status" structs:"status"`
+	APICall    string                 `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
+	APIAccount string                 `json:"apiAccount" bson:"apiAccount" mapstructure:"apiAccount" structs:"apiAccount"`
+	ReqHeaders map[string]string      `json:"reqHeaders" bson:"reqHeaders" mapstructure:"reqHeaders" structs:"reqHeaders"`
+	ReqQuery   url.Values             `json:"reqQuery" bson:"reqQuery" mapstructure:"reqQuery" structs:"reqQuery"`
+	ReqBody    map[string]interface{} `json:"reqBody" bson:"reqBody" mapstructure:"reqBody" structs:"reqBody"`
+	ResBody    string                 `json:"resBody" bson:"resBody" mapstructure:"resBody" structs:"resBody"`
+	Error      string                 `json:"error" bson:"error" mapstructure:"error" structs:"error"`
+	Status     int                    `json:"status" bson:"status" mapstructure:"status" structs:"status"`
 }

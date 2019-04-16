@@ -106,12 +106,14 @@ func GetClaimFromDB(claimCode string) (model.WorkflowClaim, error) {
 	foundVal, foundErr := database.FindOne("workflows", "claims", filter)
 
 	if foundErr != nil {
+		fmt.Println(foundErr)
 		return claim, foundErr
 	}
 
 	mapErr := mapstructure.Decode(foundVal, &claim)
 
 	if mapErr != nil {
+		fmt.Println(mapErr)
 		return claim, mapErr
 	}
 

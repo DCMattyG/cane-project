@@ -243,7 +243,7 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 		newAPI.Type = "error"
 	}
 
-	resp, err := api.CallAPI(newAPI, queryParams)
+	resp, err := api.CallAPI(newAPI, queryParams, nil)
 
 	if err != nil {
 		util.RespondWithError(w, http.StatusBadRequest, err.Error())
@@ -362,7 +362,7 @@ func TestCallAPI(w http.ResponseWriter, r *http.Request) {
 		callAPI.Body = bodyString
 	}
 
-	resp, respErr := api.CallAPI(callAPI, nil)
+	resp, respErr := api.CallAPI(callAPI, nil, nil)
 
 	if respErr != nil {
 		fmt.Println(respErr)
@@ -482,7 +482,7 @@ func ClaimTest(w http.ResponseWriter, r *http.Request) {
 	testResult.APIAccount = "testaccount"
 	testResult.APICall = "testcall"
 	testResult.Error = ""
-	testResult.ReqBody = "{req_body}"
+	// testResult.ReqBody = "{req_body}"
 	testResult.ResBody = "{res_body}"
 	testResult.Status = 2
 
