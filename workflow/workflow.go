@@ -359,9 +359,11 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			val = strings.Replace(val, "{{", "", 1)
 			val = strings.Replace(val, "}}", "", 1)
 
+			fmt.Println("Variable to Replace: " + val)
+
 			if poolVal, ok := varPool[val]; ok {
 				for replaceVar := range poolVal {
-					fmt.Println("Replace Variable:" + replaceVar)
+					fmt.Println("Replace Variable Value: " + replaceVar)
 					stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, replaceVar, 1)
 				}
 			}
