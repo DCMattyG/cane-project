@@ -368,6 +368,9 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 					fmt.Println("Replace Variable Value: " + replaceVar)
 					stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, replaceVar, 1)
 				}
+			} else {
+				fmt.Println("Replace Variable Not Found!")
+				stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, "<error>", 1)
 			}
 
 			searchPath = varMatch.FindString(stepAPI.Path)
