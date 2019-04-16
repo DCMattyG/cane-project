@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -347,6 +348,26 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		fmt.Println("Updated Body: ", stepAPI.Body)
 		step.ReqBody = stepBody
+
+		varMatch := regexp.MustCompile(`([{]{2}[a-zA-Z]*[}]{2}){1}`)
+		searchPath := varMatch.FindString(stepAPI.Path)
+
+		for searchPath != "" {
+			val := searchPath
+			val = strings.Replace(val, "{{", "", 1)
+			val = strings.Replace(val, "}}", "", 1)
+
+			if poolVal, ok := varPool[val]; ok {
+				for replaceVar := range poolVal {
+					stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, replaceVar, 1)
+				}
+			}
+
+			searchPath = varMatch.FindString(stepAPI.Path)
+		}
+
+		fmt.Println("Updated API Path:")
+		fmt.Println(stepAPI.Path)
 
 		apiResp, apiErr := api.CallAPI(stepAPI, stepQuery, stepHeader)
 
