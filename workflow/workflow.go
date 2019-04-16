@@ -361,6 +361,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 			if poolVal, ok := varPool[val]; ok {
 				for replaceVar := range poolVal {
+					fmt.Println("Replace Variable:" + replaceVar)
 					stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, replaceVar, 1)
 				}
 			}
