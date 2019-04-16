@@ -353,6 +353,8 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		searchPath := varMatch.FindString(stepAPI.Path)
 
 		for searchPath != "" {
+			fmt.Println("SearchPath: " + searchPath)
+
 			val := searchPath
 			val = strings.Replace(val, "{{", "", 1)
 			val = strings.Replace(val, "}}", "", 1)
