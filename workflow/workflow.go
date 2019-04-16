@@ -360,6 +360,8 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			val = strings.Replace(val, "}}", "", 1)
 
 			fmt.Println("Variable to Replace: " + val)
+			fmt.Println("Current Variable Pool:")
+			fmt.Println(varPool)
 
 			if poolVal, ok := varPool[val]; ok {
 				for replaceVar := range poolVal {
