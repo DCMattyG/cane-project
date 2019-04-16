@@ -200,6 +200,27 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 	fmt.Println("Zero MAP:")
 	fmt.Println(zeroMap)
 
+	// Add Variables from ZeroMap to VarPool
+	fmt.Println("Adding Variables from ZeroMap...")
+
+	for key, val := range zeroMap {
+		fmt.Println("Mapping Zero Variable: " + val.(string))
+
+		switch val.(type) {
+		case int, int32, int64:
+			fmt.Println("Mapping: " + val.(string) + " as (int)")
+			varPool[key] = map[string]string{val.(string): "int"}
+		case float32, float64:
+			fmt.Println("Mapping: " + val.(string) + " as (float)")
+			varPool[key] = map[string]string{val.(string): "float"}
+		case string:
+			fmt.Println("Mapping: " + val.(string) + " as (string)")
+			varPool[key] = map[string]string{val.(string): "string"}
+		default:
+			fmt.Println("Unknown: " + val.(string) + " type (" + reflect.TypeOf(val).String() + ")")
+		}
+	}
+
 	// For each step in "STEPS"
 	for i := 0; i < len(targetWorkflow.Steps); i++ {
 		var step model.StepResult
