@@ -322,6 +322,8 @@ func CallAPI(targetAPI model.API, queryParams url.Values, headerVals map[string]
 		req.Header.Add(key, value)
 	}
 
+	fmt.Print("Request Path: " + req.URL.String())
+
 	client = &http.Client{
 		Transport: transport,
 		Timeout:   60 * time.Second,
