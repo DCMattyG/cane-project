@@ -6,6 +6,7 @@ import (
 	"cane-project/model"
 	"cane-project/util"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -25,6 +26,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
+
+// Workflow Alias
+type Workflow model.Workflow
+
+// JSONBody Alias
+type JSONBody map[string]interface{}
 
 // CreateWorkflow Function
 func CreateWorkflow(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +66,72 @@ func CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondwithString(w, http.StatusCreated, "")
+}
+
+// UpdateWorkflow Function
+func UpdateWorkflow(w http.ResponseWriter, r *http.Request) {
+	// var currWorkflow Workflow
+	var jBody JSONBody
+	// var value interface{}
+	// var ok bool
+
+	filter := primitive.M{
+		"name": chi.URLParam(r, "workflowname"),
+	}
+
+	_, findErr := database.FindOne("workflows", "workflow", filter)
+
+	if findErr != nil {
+		util.RespondWithError(w, http.StatusBadRequest, "workflow not found")
+		return
+	}
+
+	// mapErr := mapstructure.Decode(findVal, &currWorkflow)
+
+	// if mapErr != nil {
+	// 	util.RespondWithError(w, http.StatusBadRequest, "error unmarshaling workflow details")
+	// 	return
+	// }
+
+	decodeErr := json.NewDecoder(r.Body).Decode(&jBody)
+
+	if decodeErr != nil {
+		fmt.Println(decodeErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error decoding json body")
+		return
+	}
+
+	// _, ok = jBody["name"]
+	// if ok {
+	// 	delete(jBody, "name")
+	// }
+
+	// workflow, workflowErr := jBody.ToWorkflow()
+
+	// if workflowErr != nil {
+	// 	fmt.Println(workflowErr)
+	// 	util.RespondWithError(w, http.StatusBadRequest, workflowErr.Error())
+	// 	return
+	// }
+
+	// validErr := currWorkflow.Valid()
+
+	// if validErr != nil {
+	// 	util.RespondWithError(w, http.StatusBadRequest, validErr.Error())
+	// 	return
+	// }
+
+	// fmt.Println(workflow)
+
+	_, replaceErr := database.ReplaceOne("workflows", "workflow", filter, primitive.M(jBody))
+
+	if replaceErr != nil {
+		fmt.Println(replaceErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error updating workflow in database")
+		return
+	}
+
+	util.RespondwithString(w, http.StatusOK, "")
 }
 
 // DeleteWorkflow Function
@@ -119,6 +192,19 @@ func GetWorkflows(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondwithJSON(w, http.StatusOK, map[string][]string{"workflows": workflows})
+}
+
+// ToWorkflow Function
+func (j JSONBody) ToWorkflow() (Workflow, error) {
+	var w Workflow
+
+	mapErr := mapstructure.Decode(j, &w)
+
+	if mapErr != nil {
+		return w, errors.New("error unmarshaling user details")
+	}
+
+	return w, nil
 }
 
 // CallWorkflow Function

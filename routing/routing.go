@@ -101,9 +101,8 @@ func Routers() {
 		r.Get("/workflow", workflow.GetWorkflows)
 		r.Get("/workflow/{workflowname}", workflow.GetWorkflow)
 		r.Post("/workflow", workflow.CreateWorkflow)
-		// r.Patch("/workflow/{workflowname}", workflow.UpdateWorkflow)
+		r.Patch("/workflow/{workflowname}", workflow.UpdateWorkflow)
 		r.Delete("/workflow/{workflowname}", workflow.DeleteWorkflow)
-		// FIX THIS LATER
 		r.Post("/workflow/{workflowname}", workflow.CallWorkflow)
 
 		/* /claim */
