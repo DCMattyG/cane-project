@@ -83,6 +83,7 @@ type Workflow struct {
 	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id" structs:"_id"`
 	Name        string             `json:"name" bson:"name" mapstructure:"name" structs:"name"`
 	Description string             `json:"description" bson:"description" mapstructure:"description" structs:"description"`
+	Category    string             `json:"category" bson:"category" mapstructure:"category" structs:"category"`
 	Type        string             `json:"type" bson:"type" mapstructure:"type" structs:"type"`
 	Steps       []Step             `json:"steps" bson:"steps" mapstructure:"steps" structs:"steps"`
 	// Note, add OutputMap []map[string]string
