@@ -453,8 +453,8 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		step.ReqQuery = stepQuery
 
-		fmt.Println("Updated Body: ", stepAPI.Body)
-		step.ReqBody = stepBody
+		fmt.Println("Updated Body: ", stepAPI.Body) // This doesn't look right...
+		step.ReqBody = stepBody                     // Why is this stepBody vs. stepAPI.Body???
 
 		varMatch := regexp.MustCompile(`([{]{2}[a-zA-Z]*[}]{2}){1}`)
 		searchPath := varMatch.FindString(stepAPI.Path)

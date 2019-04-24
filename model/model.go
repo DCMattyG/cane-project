@@ -1,7 +1,6 @@
 package model
 
 import (
-	"crypto/rsa"
 	"net/url"
 
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
@@ -30,8 +29,9 @@ type APIKeyAuth struct {
 
 // Rfc3447Auth Type
 type Rfc3447Auth struct {
-	PublicKey  string          `json:"publicKey" bson:"publicKey" mapstructure:"publicKey" structs:"publicKey"`
-	PrivateKey *rsa.PrivateKey `json:"privateKey" bson:"privateKey" mapstructure:"privateKey" structs:"privateKey"`
+	PublicKey  string `json:"publicKey" bson:"publicKey" mapstructure:"publicKey" structs:"publicKey"`
+	PrivateKey string `json:"privateKey" bson:"privateKey" mapstructure:"privateKey" structs:"privateKey"`
+	// PrivateKey *rsa.PrivateKey `json:"privateKey" bson:"privateKey" mapstructure:"privateKey" structs:"privateKey"`
 }
 
 // API Struct

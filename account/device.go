@@ -404,9 +404,9 @@ func AuthValid(authType string, authObj map[string]interface{}) error {
 			return errors.New("publickey cannot be empty")
 		}
 
-		// if len(auth.PrivateKey.(string)) == 0 {
-		// 	return errors.New("privatekey cannot be empty")
-		// }
+		if len(auth.PrivateKey) == 0 {
+			return errors.New("privatekey cannot be empty")
+		}
 	default:
 		return errors.New("invalid auth type")
 	}

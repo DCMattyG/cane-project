@@ -294,6 +294,8 @@ func CallAPI(targetAPI model.API, queryParams url.Values, headerVals map[string]
 		req, reqErr = auth.BasicAuth(targetAPI, queryParams)
 	case "apikey":
 		req, reqErr = auth.APIKeyAuth(targetAPI, queryParams)
+	case "rfc3447":
+		req, reqErr = auth.RFC3447Auth(targetAPI, queryParams)
 	default:
 		fmt.Println("Invalid AuthType!")
 		return nil, errors.New("invalid authtype")
