@@ -57,7 +57,7 @@ func CreateAPI(w http.ResponseWriter, r *http.Request) {
 	// Cleanup Body & Method fields
 	api.Body = strings.Replace(api.Body, "\n", "", -1)
 	api.Body = strings.Replace(api.Body, "\\", "", -1)
-	api.Method = strings.ToUpper(api.Method)
+	// api.Method = strings.ToUpper(api.Method)
 
 	validErr := api.Valid()
 
@@ -115,7 +115,7 @@ func UpdateAPI(w http.ResponseWriter, r *http.Request) {
 	// Cleanup Body & Method fields
 	api.Body = strings.Replace(api.Body, "\n", "", -1)
 	api.Body = strings.Replace(api.Body, "\\", "", -1)
-	api.Method = strings.ToUpper(api.Method)
+	// api.Method = strings.ToUpper(api.Method)
 
 	accountFilter := primitive.M{
 		"name": apiAccount,
@@ -143,9 +143,9 @@ func UpdateAPI(w http.ResponseWriter, r *http.Request) {
 
 	mapstructure.Decode(loadVal, &currAPI)
 
-	if api.Method != "" {
-		currAPI.Method = api.Method
-	}
+	// if api.Method != "" {
+	// 	currAPI.Method = api.Method
+	// }
 
 	if api.Path != "" {
 		currAPI.Path = api.Path
@@ -254,7 +254,7 @@ func GetAPIFromDB(apiAccount string, apiName string) (model.API, error) {
 }
 
 // CallAPI Function
-func CallAPI(targetAPI model.API, queryParams url.Values, headerVals map[string]string) (*http.Response, error) {
+func CallAPI(targetAPI model.API, stepMethod string, queryParams url.Values, headerVals map[string]string) (*http.Response, error) {
 	transport := &http.Transport{}
 	client := &http.Client{}
 
@@ -289,13 +289,13 @@ func CallAPI(targetAPI model.API, queryParams url.Values, headerVals map[string]
 
 	switch targetDevice.AuthType {
 	case "none":
-		req, reqErr = auth.NoAuth(targetAPI, queryParams)
+		req, reqErr = auth.NoAuth(targetAPI, stepMethod, queryParams)
 	case "basic":
-		req, reqErr = auth.BasicAuth(targetAPI, queryParams)
+		req, reqErr = auth.BasicAuth(targetAPI, stepMethod, queryParams)
 	case "apikey":
-		req, reqErr = auth.APIKeyAuth(targetAPI, queryParams)
+		req, reqErr = auth.APIKeyAuth(targetAPI, stepMethod, queryParams)
 	case "rfc3447":
-		req, reqErr = auth.RFC3447Auth(targetAPI, queryParams)
+		req, reqErr = auth.RFC3447Auth(targetAPI, stepMethod, queryParams)
 	default:
 		fmt.Println("Invalid AuthType!")
 		return nil, errors.New("invalid authtype")
@@ -424,17 +424,17 @@ func (a API) Valid() error {
 		return errors.New("target deviceAccount does not exist")
 	}
 
-	if !ValidMethod(a.Method) {
-		return errors.New("invalid method")
-	}
+	// if !ValidMethod(a.Method) {
+	// 	return errors.New("invalid method")
+	// }
 
 	if a.Path == "" {
 		return errors.New("url cannot be empty")
 	}
 
-	if a.Body == "" && (a.Method == "POST" || a.Method == "PATCH") {
-		return errors.New("body cannot be empty with POST & PATCH")
-	}
+	// if a.Body == "" && (a.Method == "POST" || a.Method == "PATCH") {
+	// 	return errors.New("body cannot be empty with POST & PATCH")
+	// }
 
 	if !ValidType(a.Type) {
 		return errors.New("type cannot be empty")

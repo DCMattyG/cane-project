@@ -225,7 +225,9 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newAPI.DeviceAccount = device
-	newAPI.Method = routeMethod
+	// newAPI.Method = routeMethod
+
+	fmt.Println("Pass Through Method: " + routeMethod)
 
 	if len(uri) > 0 {
 		newAPI.Path += "/"
@@ -242,7 +244,7 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 		newAPI.Type = "error"
 	}
 
-	resp, err := api.CallAPI(newAPI, queryParams, nil)
+	resp, err := api.CallAPI(newAPI, routeMethod, queryParams, nil)
 
 	if err != nil {
 		util.RespondWithError(w, http.StatusBadRequest, err.Error())
@@ -361,7 +363,7 @@ func TestCallAPI(w http.ResponseWriter, r *http.Request) {
 		callAPI.Body = bodyString
 	}
 
-	resp, respErr := api.CallAPI(callAPI, nil, nil)
+	resp, respErr := api.CallAPI(callAPI, "", nil, nil)
 
 	if respErr != nil {
 		fmt.Println(respErr)

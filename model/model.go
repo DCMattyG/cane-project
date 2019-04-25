@@ -39,7 +39,6 @@ type API struct {
 	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" mapstructure:"_id"`
 	Name          string             `json:"name" bson:"name" mapstructure:"name" structs:"name"`
 	DeviceAccount string             `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount" structs:"deviceAccount"`
-	Method        string             `json:"method" bson:"method" mapstructure:"method" structs:"method"`
 	Path          string             `json:"path" bson:"path" mapstructure:"path" structs:"path"`
 	Body          string             `json:"body" bson:"body" mapstructure:"body" structs:"body"`
 	Type          string             `json:"type" bson:"type" mapstructure:"type" structs:"type"`
@@ -104,6 +103,7 @@ type Step struct {
 	Title         string              `json:"title" bson:"title" mapstructure:"title" structs:"title"`
 	Description   string              `json:"description" bson:"description" mapstructure:"description" structs:"description"`
 	APICall       string              `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
+	Verb          string              `json:"verb" bson:"verb" mapstructure:"verb" structs:"verb"`
 	DeviceAccount string              `json:"deviceAccount" bson:"deviceAccount" mapstructure:"deviceAccount" structs:"deviceAccount"`
 	Headers       []map[string]string `json:"headers" bson:"headers" mapstructure:"headers" structs:"headers"`
 	Variables     []map[string]string `json:"variables" bson:"variables" mapstructure:"variables" structs:"variables"`

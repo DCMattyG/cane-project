@@ -13,7 +13,7 @@ import (
 )
 
 // SessionAuth Function
-func SessionAuth(api model.API, queryParams url.Values) (*http.Request, error) {
+func SessionAuth(api model.API, method string, queryParams url.Values) (*http.Request, error) {
 	device, deviceErr := account.GetDeviceFromDB(api.DeviceAccount)
 	var queryPath string
 
@@ -32,7 +32,7 @@ func SessionAuth(api model.API, queryParams url.Values) (*http.Request, error) {
 	fmt.Println("HOSTNAME: ", host.Hostname())
 	fmt.Println("ENDPOINT: ", api.Path)
 
-	targetMethod := strings.ToUpper(api.Method)
+	targetMethod := strings.ToUpper(method)
 
 	fmt.Println("METHOD: ", targetMethod)
 

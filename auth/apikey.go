@@ -11,7 +11,7 @@ import (
 )
 
 // APIKeyAuth Function
-func APIKeyAuth(api model.API, queryParams url.Values) (*http.Request, error) {
+func APIKeyAuth(api model.API, method string, queryParams url.Values) (*http.Request, error) {
 	device, deviceErr := account.GetDeviceFromDB(api.DeviceAccount)
 	var queryPath string
 
@@ -26,7 +26,7 @@ func APIKeyAuth(api model.API, queryParams url.Values) (*http.Request, error) {
 		panic("Cannot parse *host*!")
 	}
 
-	targetMethod := strings.ToUpper(api.Method)
+	targetMethod := strings.ToUpper(method)
 
 	// Encode Query Params and append to resourcePath
 	if len(queryParams) != 0 && targetMethod == "GET" {

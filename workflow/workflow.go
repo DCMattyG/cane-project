@@ -311,6 +311,9 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 	for i := 0; i < len(targetWorkflow.Steps); i++ {
 		var step model.StepResult
 
+		stepMethod := targetWorkflow.Steps[i].Verb
+		fmt.Println("Step Method: " + stepMethod)
+
 		fmt.Println("Setting API Status to 1...")
 
 		step.Status = 1
@@ -486,7 +489,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		fmt.Println("Updated API Path:")
 		fmt.Println(stepAPI.Path)
 
-		apiResp, apiErr := api.CallAPI(stepAPI, stepQuery, stepHeader)
+		apiResp, apiErr := api.CallAPI(stepAPI, stepMethod, stepQuery, stepHeader)
 
 		if apiErr != nil {
 			fmt.Println(apiErr)
