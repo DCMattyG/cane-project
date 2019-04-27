@@ -115,8 +115,8 @@ type Step struct {
 
 // StepResult Struct
 type StepResult struct {
-	APICall    string                 `json:"apiCall" bson:"apiCall" mapstructure:"apiCall" structs:"apiCall"`
-	APIAccount string                 `json:"apiAccount" bson:"apiAccount" mapstructure:"apiAccount" structs:"apiAccount"`
+	API        map[string]interface{} `json:"api" bson:"api" mapstructure:"api" structs:"api"`
+	Account    string                 `json:"account" bson:"account" mapstructure:"account" structs:"account"`
 	ReqHeaders map[string]string      `json:"reqHeaders" bson:"reqHeaders" mapstructure:"reqHeaders" structs:"reqHeaders"`
 	ReqQuery   url.Values             `json:"reqQuery" bson:"reqQuery" mapstructure:"reqQuery" structs:"reqQuery"`
 	ReqBody    map[string]interface{} `json:"reqBody" bson:"reqBody" mapstructure:"reqBody" structs:"reqBody"`

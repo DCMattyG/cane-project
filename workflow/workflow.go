@@ -19,6 +19,7 @@ import (
 	//"github.com/mongodb/mongo-go-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/fatih/structs"
 	"github.com/tidwall/sjson"
 
 	"github.com/mitchellh/mapstructure"
@@ -345,8 +346,9 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			return
 		}
 
-		step.APICall = stepAPI.Name
-		step.APIAccount = stepAPI.DeviceAccount
+		step.API = structs.Map(stepAPI)
+		delete(step.API, "_id")
+		step.Account = stepAPI.DeviceAccount
 
 		// Build BODY string from Map
 		fmt.Println("Building BODY from Map...")
@@ -493,11 +495,11 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		step.ReqQuery = stepQuery
 
-		fmt.Println("Updated Body: ", stepAPI.Body) // This doesn't look right...
-		step.ReqBody = stepBody                     // Why is this stepBody vs. stepAPI.Body???
+		fmt.Println("Updated Body: ", stepBody) // This doesn't look right...
+		step.ReqBody = stepBody                 // Why is this stepBody vs. stepAPI.Body???
 
 		varMatch := regexp.MustCompile(`([{]{2}[a-zA-Z]*[}]{2}){1}`)
-		searchPath := varMatch.FindString(stepAPI.Path)
+		searchPath := varMatch.FindString(step.API["path"].(string))
 
 		for searchPath != "" {
 			fmt.Println("SearchPath: " + searchPath)
@@ -513,20 +515,31 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			if poolVal, ok := varPool[val]; ok {
 				for replaceVar := range poolVal {
 					fmt.Println("Replace Variable Value: " + replaceVar)
-					stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, replaceVar, 1)
+					stepAPI.Path = strings.Replace(step.API["path"].(string), searchPath, replaceVar, 1)
 				}
 			} else {
 				fmt.Println("Replace Variable Not Found!")
-				stepAPI.Path = strings.Replace(stepAPI.Path, searchPath, "<error>", 1)
+				stepAPI.Path = strings.Replace(step.API["path"].(string), searchPath, "<error>", 1)
 			}
 
-			searchPath = varMatch.FindString(stepAPI.Path)
+			searchPath = varMatch.FindString(step.API["path"].(string))
 		}
 
 		fmt.Println("Updated API Path:")
-		fmt.Println(stepAPI.Path)
+		fmt.Println(step.API["path"])
 
-		apiResp, apiErr := api.CallAPI(stepAPI, stepMethod, stepQuery, stepHeader)
+		var targetAPI model.API
+		var bodyString string
+		mapstructure.Decode(step.API, &targetAPI)
+
+		if len(step.ReqBody) > 0 {
+			bodyBytes, _ := json.Marshal(step.ReqBody)
+			bodyString = string(bodyBytes)
+		} else {
+			bodyString = ""
+		}
+
+		apiResp, apiErr := api.CallAPI(targetAPI, stepMethod, stepQuery, stepHeader, bodyString)
 
 		if apiErr != nil {
 			fmt.Println(apiErr)

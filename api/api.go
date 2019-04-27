@@ -18,6 +18,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/go-chi/chi"
 	"github.com/mitchellh/mapstructure"
+
 	//"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/mongodb/mongo-go-driver/mongo/options"
@@ -256,7 +257,7 @@ func GetAPIFromDB(apiAccount string, apiName string) (model.API, error) {
 }
 
 // CallAPI Function
-func CallAPI(targetAPI model.API, stepMethod string, queryParams url.Values, headerVals map[string]string) (*http.Response, error) {
+func CallAPI(targetAPI model.API, stepMethod string, queryParams url.Values, headerVals map[string]string, stepBody string) (*http.Response, error) {
 	transport := &http.Transport{}
 	client := &http.Client{}
 
@@ -291,13 +292,13 @@ func CallAPI(targetAPI model.API, stepMethod string, queryParams url.Values, hea
 
 	switch targetDevice.AuthType {
 	case "none":
-		req, reqErr = auth.NoAuth(targetAPI, stepMethod, queryParams)
+		req, reqErr = auth.NoAuth(targetAPI, stepMethod, queryParams, stepBody)
 	case "basic":
-		req, reqErr = auth.BasicAuth(targetAPI, stepMethod, queryParams)
+		req, reqErr = auth.BasicAuth(targetAPI, stepMethod, queryParams, stepBody)
 	case "apikey":
-		req, reqErr = auth.APIKeyAuth(targetAPI, stepMethod, queryParams)
+		req, reqErr = auth.APIKeyAuth(targetAPI, stepMethod, queryParams, stepBody)
 	case "rfc3447":
-		req, reqErr = auth.RFC3447Auth(targetAPI, stepMethod, queryParams)
+		req, reqErr = auth.RFC3447Auth(targetAPI, stepMethod, queryParams, stepBody)
 	default:
 		fmt.Println("Invalid AuthType!")
 		return nil, errors.New("invalid authtype")
@@ -326,7 +327,7 @@ func CallAPI(targetAPI model.API, stepMethod string, queryParams url.Values, hea
 		req.Header.Add(key, value)
 	}
 
-	fmt.Print("Request Path: " + req.URL.String())
+	fmt.Println("Request Path: " + req.URL.String())
 
 	client = &http.Client{
 		Transport: transport,

@@ -12,7 +12,7 @@ import (
 )
 
 // BasicAuth Function
-func BasicAuth(api model.API, method string, queryParams url.Values) (*http.Request, error) {
+func BasicAuth(api model.API, method string, queryParams url.Values, body string) (*http.Request, error) {
 	device, deviceErr := account.GetDeviceFromDB(api.DeviceAccount)
 	var queryPath string
 
@@ -38,7 +38,7 @@ func BasicAuth(api model.API, method string, queryParams url.Values) (*http.Requ
 	targetURL := host.String() + api.Path + queryPath
 
 	// Create HTTP request
-	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(api.Body))
+	req, err := http.NewRequest(targetMethod, targetURL, strings.NewReader(body))
 
 	if err != nil {
 		log.Print(err)

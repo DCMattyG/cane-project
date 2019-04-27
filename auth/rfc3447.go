@@ -158,7 +158,7 @@ func getGMTDate() string {
 // and an HTTP proxy (if required), will return an HTTP
 // *Response with the outcome of the API call
 // func RFC3447Auth(httpMethod string, resourcePath string, queryParams url.Values, body map[string]interface{}, moid string, name string) *http.Request {
-func RFC3447Auth(api model.API, method string, queryParams url.Values) (*http.Request, error) {
+func RFC3447Auth(api model.API, method string, queryParams url.Values, body string) (*http.Request, error) {
 	var bodyString string
 	var queryPath string
 

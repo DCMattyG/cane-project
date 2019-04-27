@@ -23,9 +23,10 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth"
 	"github.com/mitchellh/mapstructure"
+
 	//"github.com/mongodb/mongo-go-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/tidwall/gjson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Router Variable
@@ -246,7 +247,7 @@ func PassThroughAPI(w http.ResponseWriter, r *http.Request) {
 		newAPI.Type = "error"
 	}
 
-	resp, err := api.CallAPI(newAPI, routeMethod, queryParams, nil)
+	resp, err := api.CallAPI(newAPI, routeMethod, queryParams, nil, bodyString)
 
 	if err != nil {
 		util.RespondWithError(w, http.StatusBadRequest, err.Error())
@@ -365,7 +366,7 @@ func TestCallAPI(w http.ResponseWriter, r *http.Request) {
 		callAPI.Body = bodyString
 	}
 
-	resp, respErr := api.CallAPI(callAPI, "", nil, nil)
+	resp, respErr := api.CallAPI(callAPI, "", nil, nil, bodyString)
 
 	if respErr != nil {
 		fmt.Println(respErr)
@@ -482,8 +483,8 @@ func ClaimTest(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Loading fake step data...")
 
-	testResult.APIAccount = "testaccount"
-	testResult.APICall = "testcall"
+	testResult.Account = "testaccount"
+	// testResult.API = "testcall"
 	testResult.Error = ""
 	// testResult.ReqBody = "{req_body}"
 	testResult.ResBody = "{res_body}"
