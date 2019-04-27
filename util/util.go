@@ -10,10 +10,12 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	//"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // ProxyURL Variable
@@ -157,4 +159,12 @@ func IsVar(data string) bool {
 	}
 
 	return false
+}
+
+// GetVariables Function
+func GetVariables(data string) []string {
+	regex := regexp.MustCompile(`{{[a-zA-Z]+}}`)
+	matches := regex.FindAllString(data, -1)
+
+	return matches
 }

@@ -11,12 +11,14 @@ import (
 
 	"github.com/fatih/structs"
 
-	"github.com/mongodb/mongo-go-driver/mongo/options"
+	//"github.com/mongodb/mongo-go-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/go-chi/chi"
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	//"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // CreateDevice Function

@@ -16,7 +16,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mongodb/mongo-go-driver/mongo/options"
+	//"github.com/mongodb/mongo-go-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/tidwall/sjson"
 
@@ -24,7 +25,8 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/go-chi/chi"
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	//"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Workflow Alias
@@ -70,10 +72,7 @@ func CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 
 // UpdateWorkflow Function
 func UpdateWorkflow(w http.ResponseWriter, r *http.Request) {
-	// var currWorkflow Workflow
 	var jBody JSONBody
-	// var value interface{}
-	// var ok bool
 
 	filter := primitive.M{
 		"name": chi.URLParam(r, "workflowname"),
@@ -86,13 +85,6 @@ func UpdateWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// mapErr := mapstructure.Decode(findVal, &currWorkflow)
-
-	// if mapErr != nil {
-	// 	util.RespondWithError(w, http.StatusBadRequest, "error unmarshaling workflow details")
-	// 	return
-	// }
-
 	decodeErr := json.NewDecoder(r.Body).Decode(&jBody)
 
 	if decodeErr != nil {
@@ -101,33 +93,27 @@ func UpdateWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// _, ok = jBody["name"]
-	// if ok {
-	// 	delete(jBody, "name")
-	// }
+	// _, replaceErr := database.ReplaceOne("workflows", "workflow", filter, primitive.M(jBody))
 
-	// workflow, workflowErr := jBody.ToWorkflow()
-
-	// if workflowErr != nil {
-	// 	fmt.Println(workflowErr)
-	// 	util.RespondWithError(w, http.StatusBadRequest, workflowErr.Error())
+	// if replaceErr != nil {
+	// 	fmt.Println(replaceErr)
+	// 	util.RespondWithError(w, http.StatusBadRequest, "error updating workflow in database")
 	// 	return
 	// }
 
-	// validErr := currWorkflow.Valid()
+	deleteErr := database.Delete("workflows", "workflow", filter)
 
-	// if validErr != nil {
-	// 	util.RespondWithError(w, http.StatusBadRequest, validErr.Error())
-	// 	return
-	// }
+	if deleteErr != nil {
+		fmt.Println(deleteErr)
+		util.RespondWithError(w, http.StatusBadRequest, "error deleting workflow in database")
+		return
+	}
 
-	// fmt.Println(workflow)
-
-	_, replaceErr := database.ReplaceOne("workflows", "workflow", filter, primitive.M(jBody))
+	_, replaceErr := database.Save("workflows", "workflow", primitive.M(jBody))
 
 	if replaceErr != nil {
 		fmt.Println(replaceErr)
-		util.RespondWithError(w, http.StatusBadRequest, "error updating workflow in database")
+		util.RespondWithError(w, http.StatusBadRequest, "error re-creating workflow in database")
 		return
 	}
 
@@ -271,8 +257,18 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 	fmt.Println("Unmarshal Step Zero BODY to MAP")
 
+	/*
+		decoder := json.NewDecoder(strings.NewReader(bodyBuilder))
+		decoder.UseNumber()
+		bodyErr := decoder.Decode(&stepBody)
+	*/
+
 	if len(stepZero) != 0 {
-		zeroErr := json.Unmarshal([]byte(stepZero), &zeroMap)
+		decoder := json.NewDecoder(strings.NewReader(stepZero))
+		decoder.UseNumber()
+		zeroErr := decoder.Decode(&zeroMap)
+
+		// zeroErr := json.Unmarshal([]byte(stepZero), &zeroMap)
 
 		if zeroErr != nil {
 			fmt.Println("Error unmarshalling Zero BODY to MAP!")
@@ -280,7 +276,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			return
 		}
 	} else {
-		fmt.Println("Empty BODY, setting to {}")
+		fmt.Println("Empty StepZero BODY!")
 	}
 
 	fmt.Println("Zero MAP:")
@@ -290,22 +286,41 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 	fmt.Println("Adding Variables from ZeroMap...")
 
 	for key, val := range zeroMap {
-		fmt.Println("Mapping Zero Variable: " + val.(string))
+		fmt.Print("Mapping Zero Variable: ")
+		fmt.Println(val)
 
 		switch val.(type) {
 		case int, int32, int64:
-			fmt.Println("Mapping: " + val.(string) + " as (int)")
-			varPool[key] = map[string]string{val.(string): "int"}
+			fmt.Println("INT")
+			intVal := strconv.Itoa(val.(int))
+			fmt.Println("Mapping: " + intVal + " as (int)")
+			varPool[key] = map[string]string{intVal: "int"}
+		case json.Number:
+			fmt.Println("JSON NUMBER")
+			jnumVal := fmt.Sprintf("%v", val)
+			fmt.Println("Mapping: " + jnumVal + " as (int)")
+			varPool[key] = map[string]string{jnumVal: "int"}
 		case float32, float64:
-			fmt.Println("Mapping: " + val.(string) + " as (float)")
-			varPool[key] = map[string]string{val.(string): "float"}
+			fmt.Println("FLOAT")
+			floatVal := fmt.Sprintf("%f", val)
+			fmt.Println("Mapping: " + floatVal + " as (float)")
+			varPool[key] = map[string]string{floatVal: "float"}
+		case bool:
+			fmt.Println("BOOL")
+			fmt.Println("Mapping: " + strconv.FormatBool(val.(bool)) + " as (bool)")
+			varPool[key] = map[string]string{strconv.FormatBool(val.(bool)): "bool"}
 		case string:
+			fmt.Println("STRING")
 			fmt.Println("Mapping: " + val.(string) + " as (string)")
 			varPool[key] = map[string]string{val.(string): "string"}
 		default:
+			fmt.Println("UNKNOWN")
 			fmt.Println("Unknown: " + val.(string) + " type (" + reflect.TypeOf(val).String() + ")")
 		}
 	}
+
+	fmt.Println("VarPool MAP:")
+	fmt.Println(varPool)
 
 	// For each step in "STEPS"
 	for i := 0; i < len(targetWorkflow.Steps); i++ {
@@ -349,33 +364,43 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		for bodyCount := 0; bodyCount < len(targetWorkflow.Steps[i].Body); bodyCount++ {
 			for key, val := range targetWorkflow.Steps[i].Body[bodyCount] {
-				fmt.Println("Processing BODY Var: (" + val + ")")
-				if util.IsVar(val) {
-					fmt.Println("Found variable: " + val)
-					val = strings.Replace(val, "{{", "", 1)
-					val = strings.Replace(val, "}}", "", 1)
-					fmt.Println("Stripped variable: (" + val + ")")
-				}
+				if len(util.GetVariables(val)) > 0 {
+					fmt.Print("Found variable(s): ")
+					fmt.Println(util.GetVariables(val))
 
-				if poolVal, ok := varPool[val]; ok {
-					for replaceVar, replaceType := range poolVal {
-						switch replaceType {
-						case "int":
-							fmt.Println("(" + replaceVar + ") is an INT")
-							bodyVal, _ := strconv.ParseInt(replaceVar, 10, 64)
-							bodyBuilder, _ = sjson.Set(bodyBuilder, key, bodyVal)
-						case "float":
-							fmt.Println("(" + replaceVar + ") is a FLOAT")
-							bodyVal, _ := strconv.ParseFloat(replaceVar, 64)
-							bodyBuilder, _ = sjson.Set(bodyBuilder, key, bodyVal)
-						case "string":
-							fmt.Println("(" + replaceVar + ") is a STRING")
-							bodyBuilder, _ = sjson.Set(bodyBuilder, key, replaceVar)
+					for _, variable := range util.GetVariables(val) {
+						rawVar := variable
+						rawVar = strings.Replace(rawVar, "{{", "", 1)
+						rawVar = strings.Replace(rawVar, "}}", "", 1)
+
+						if poolVal, ok := varPool[rawVar]; ok {
+							for replaceVar := range poolVal {
+								val = strings.Replace(val, variable, replaceVar, 1)
+							}
+						} else {
+							fmt.Println("ERROR MISSING BODY VARIABLE!!!")
+							// Fail Workflow Here
 						}
 					}
-				} else {
-					bodyBuilder, _ = sjson.Set(bodyBuilder, key, val)
 				}
+
+				var newVal interface{}
+
+				if tempVal, err := strconv.ParseInt(val, 10, 64); err == nil {
+					fmt.Println("Updated BODY VAL is an INT!")
+					newVal = tempVal
+				} else if tempVal, err := strconv.ParseFloat(val, 64); err == nil {
+					fmt.Println("Updated BODY VAL is a FLOAT!")
+					newVal = tempVal
+				} else if strings.ToLower(val) == "false" || strings.ToLower(val) == "true" {
+					fmt.Println("Updated BODY VAL is a BOOL!")
+					newVal, _ = strconv.ParseBool(val)
+				} else {
+					fmt.Println("Updated BODY VAL is a STRING!")
+					newVal = val
+				}
+
+				bodyBuilder, _ = sjson.Set(bodyBuilder, key, newVal)
 			}
 		}
 
@@ -411,17 +436,27 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		for headerCount := 0; headerCount < len(targetWorkflow.Steps[i].Headers); headerCount++ {
 			for key, val := range targetWorkflow.Steps[i].Headers[headerCount] {
-				if util.IsVar(val) {
-					fmt.Println("Found variable: " + val)
+				if len(util.GetVariables(val)) > 0 {
+					fmt.Print("Found variable(s): ")
+					fmt.Println(util.GetVariables(val))
+
+					for _, variable := range util.GetVariables(val) {
+						rawVar := variable
+						rawVar = strings.Replace(rawVar, "{{", "", 1)
+						rawVar = strings.Replace(rawVar, "}}", "", 1)
+
+						if poolVal, ok := varPool[rawVar]; ok {
+							for replaceVar := range poolVal {
+								val = strings.Replace(val, variable, replaceVar, 1)
+							}
+						} else {
+							fmt.Println("ERROR MISSING HEADER VARIABLE!!!")
+							// Fail Workflow Here
+						}
+					}
 				}
 
-				if poolVal, ok := varPool[val]; ok {
-					for replaceVar := range poolVal {
-						stepHeader[key] = replaceVar
-					}
-				} else {
-					stepHeader[key] = val
-				}
+				stepHeader[key] = val
 			}
 		}
 
@@ -437,17 +472,27 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		for queryCount := 0; queryCount < len(targetWorkflow.Steps[i].Query); queryCount++ {
 			for key, val := range targetWorkflow.Steps[i].Query[queryCount] {
-				if util.IsVar(val) {
-					fmt.Println("Found variable: " + val)
+				if len(util.GetVariables(val)) > 0 {
+					fmt.Print("Found variable(s): ")
+					fmt.Println(util.GetVariables(val))
+
+					for _, variable := range util.GetVariables(val) {
+						rawVar := variable
+						rawVar = strings.Replace(rawVar, "{{", "", 1)
+						rawVar = strings.Replace(rawVar, "}}", "", 1)
+
+						if poolVal, ok := varPool[rawVar]; ok {
+							for replaceVar := range poolVal {
+								val = strings.Replace(val, variable, replaceVar, 1)
+							}
+						} else {
+							fmt.Println("ERROR MISSING QUERY VARIABLE!!!")
+							// Fail Workflow Here
+						}
+					}
 				}
 
-				if poolVal, ok := varPool[val]; ok {
-					for replaceVar := range poolVal {
-						stepQuery.Add(key, replaceVar)
-					}
-				} else {
-					stepQuery.Add(key, val)
-				}
+				stepQuery.Add(key, val)
 			}
 		}
 
@@ -570,12 +615,18 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			}
 		}
 
+		// Complete Workflow Step
+		fmt.Println("Workflow Step (" + strconv.Itoa(i) + ") successfully completed!")
+
 		step.Status = 2
 		apiResults[strconv.Itoa(i+1)] = step
 		workflowClaim.WorkflowResults = apiResults
 		// workflowClaim.CurrentStatus = 2
 		workflowClaim.Save()
 	}
+
+	// Complete Workflow
+	fmt.Println("Workflow Execution successfully completed!")
 
 	workflowClaim.CurrentStatus = 2
 	workflowClaim.Save()

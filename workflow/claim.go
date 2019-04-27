@@ -13,9 +13,11 @@ import (
 
 	"github.com/fatih/structs"
 
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
-	"github.com/mongodb/mongo-go-driver/mongo/options"
+	//"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	//"github.com/mongodb/mongo-go-driver/mongo/options"
 	"github.com/segmentio/ksuid"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Claim Alias
@@ -45,7 +47,21 @@ func (c *Claim) Save() {
 
 	delete(replace, "_id")
 
-	replaceVal, replaceErr := database.FindAndReplace("workflows", "claims", filter, replace)
+	// replaceVal, replaceErr := database.FindAndReplace("workflows", "claims", filter, replace)
+
+	// if replaceErr != nil {
+	// 	fmt.Println(replaceErr)
+	// 	return
+	// }
+
+	deleteErr := database.Delete("workflows", "claims", filter)
+
+	if deleteErr != nil {
+		fmt.Println(deleteErr)
+		return
+	}
+
+	replaceVal, replaceErr := database.Save("workflows", "claims", replace)
 
 	if replaceErr != nil {
 		fmt.Println(replaceErr)
