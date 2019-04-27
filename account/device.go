@@ -386,9 +386,9 @@ func AuthValid(authType string, authObj map[string]interface{}) error {
 
 		mapstructure.Decode(authObj, &auth)
 
-		if len(auth.Header) == 0 {
-			return errors.New("header cannot be empty")
-		}
+		// if len(auth.Header) == 0 {
+		// 	return errors.New("header cannot be empty")
+		// }
 
 		if len(auth.Key) == 0 {
 			return errors.New("key cannot be empty")
