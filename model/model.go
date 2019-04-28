@@ -121,6 +121,7 @@ type StepResult struct {
 	ReqQuery   url.Values             `json:"reqQuery" bson:"reqQuery" mapstructure:"reqQuery" structs:"reqQuery"`
 	ReqBody    map[string]interface{} `json:"reqBody" bson:"reqBody" mapstructure:"reqBody" structs:"reqBody"`
 	ResBody    string                 `json:"resBody" bson:"resBody" mapstructure:"resBody" structs:"resBody"`
+	ResStatus  int                    `json:"resStatus" bson:"resStatus" mapstructure:"resStatus" structs:"resStatus"`
 	Error      string                 `json:"error" bson:"error" mapstructure:"error" structs:"error"`
 	Status     int                    `json:"status" bson:"status" mapstructure:"status" structs:"status"`
 }

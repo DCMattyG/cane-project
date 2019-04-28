@@ -578,7 +578,7 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 		fmt.Println("Response Status Code:")
 		fmt.Println(apiResp.StatusCode)
 
-		step.Status = apiResp.StatusCode
+		step.ResStatus = apiResp.StatusCode
 
 		if apiResp.StatusCode > 299 {
 			fmt.Println("Error! Status code > 299!")
