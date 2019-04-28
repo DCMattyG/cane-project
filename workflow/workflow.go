@@ -515,11 +515,11 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 			if poolVal, ok := varPool[val]; ok {
 				for replaceVar := range poolVal {
 					fmt.Println("Replace Variable Value: " + replaceVar)
-					stepAPI.Path = strings.Replace(step.API["path"].(string), searchPath, replaceVar, 1)
+					step.API["path"] = strings.Replace(step.API["path"].(string), searchPath, replaceVar, 1)
 				}
 			} else {
 				fmt.Println("Replace Variable Not Found!")
-				stepAPI.Path = strings.Replace(step.API["path"].(string), searchPath, "<error>", 1)
+				step.API["path"] = strings.Replace(step.API["path"].(string), searchPath, "<error>", 1)
 			}
 
 			searchPath = varMatch.FindString(step.API["path"].(string))
