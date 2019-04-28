@@ -575,6 +575,22 @@ func ExecuteWorkflow(stepZero string, targetWorkflow model.Workflow, workflowCla
 
 		step.ResBody = string(respBody)
 
+		fmt.Println("Response Status Code:")
+		fmt.Println(apiResp.StatusCode)
+
+		step.Status = apiResp.StatusCode
+
+		if apiResp.StatusCode > 299 {
+			fmt.Println("Error! Status code > 299!")
+			step.Error = "Error calling API"
+			step.Status = -1
+			apiResults[strconv.Itoa(i+1)] = step
+			workflowClaim.WorkflowResults = apiResults
+			workflowClaim.CurrentStatus = -1
+			workflowClaim.Save()
+			return
+		}
+
 		if !gjson.Valid(step.ResBody) {
 			fmt.Println("GJSON Reports ResBody is invalid JSON!")
 		}
