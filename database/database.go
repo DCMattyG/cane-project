@@ -222,6 +222,16 @@ func ReplaceOne(database string, collection string, filter bson.M, replace bson.
 	return result, nil
 }
 
+// ListDB Function
+func ListDB(filter primitive.M) []string {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	dbs, _ := client.ListDatabaseNames(ctx, filter)
+
+	return dbs
+}
+
 func init() {
 	var err error
 

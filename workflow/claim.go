@@ -83,10 +83,10 @@ func GetClaims(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(foundVal) == 0 {
-		util.RespondWithError(w, http.StatusBadRequest, "empty claims list")
-		return
-	}
+	// if len(foundVal) == 0 {
+	// 	util.RespondWithError(w, http.StatusBadRequest, "empty claims list")
+	// 	return
+	// }
 
 	for key := range foundVal {
 		claims = append(claims, foundVal[key]["claimCode"].(string))

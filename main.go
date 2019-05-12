@@ -1,6 +1,9 @@
 package main
 
 import (
+	"cane-project/database"
+	"cane-project/jwt"
+	"cane-project/model"
 	"cane-project/routing"
 	"fmt"
 	"net/http"
@@ -54,6 +57,47 @@ func logger() http.Handler {
 	})
 }
 
+// First Run fucntion to detect a fresh install
+func firstRun() {
+	var user model.UserAccount
+
+	filter := primitive.M{
+		"name": "accounts",
+	}
+
+	dbs := database.ListDB(filter)
+
+	if len(dbs) == 0 {
+		fmt.Println("First run detected!")
+		fmt.Println("Generating admin account...")
+
+		user.UserName = "admin"
+		user.FirstName = "Admin"
+		user.LastName = "User"
+		user.Password = "password"
+		user.Privilege = 1
+		user.Enable = true
+
+		userToken, tokenErr := jwt.GenerateJWT(model.UserAccount(user))
+
+		if tokenErr != nil {
+			fmt.Println("error generating jwt token")
+			return
+		}
+
+		user.Token = userToken
+
+		_, saveErr := database.Save("accounts", "users", user)
+
+		if saveErr != nil {
+			fmt.Println("error saving account to database")
+			return
+		}
+	} else {
+		fmt.Println("Existing DB Detected...")
+	}
+}
+
 func cleanup() {
 	fmt.Println()
 	fmt.Println("Cleaning up...")
@@ -84,6 +128,8 @@ func main() {
 	} else {
 		canePort += "8005"
 	}
+
+	firstRun()
 
 	fmt.Println("Starting router...")
 

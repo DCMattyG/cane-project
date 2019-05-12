@@ -168,11 +168,11 @@ func GetWorkflows(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(foundVal) == 0 {
-		fmt.Println(foundVal)
-		util.RespondWithError(w, http.StatusBadRequest, "empty workflows list")
-		return
-	}
+	// if len(foundVal) == 0 {
+	// 	fmt.Println(foundVal)
+	// 	util.RespondWithError(w, http.StatusBadRequest, "empty workflows list")
+	// 	return
+	// }
 
 	for key := range foundVal {
 		workflows = append(workflows, foundVal[key]["name"].(string))
